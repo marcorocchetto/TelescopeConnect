@@ -1,0 +1,50 @@
+
+
+The file process_fits.py can be used to read the metadata (FITS headers) of FITS files
+
+    Usage:
+
+        python process_fits.py --fits_fname=light_frame.fits --time_zone=Australia/Queensland
+
+    where the available timezones are defined in the files "timezones". Note that this field is compulsory.
+
+    It returns a string in JSON format:
+
+    If the file is correctly parsed:
+
+        {
+            "ccdtemp":-10.20308403673608,
+            "dateobs_utc_str":"2016-09-24T10:00:36.000000",
+            "dec_float":-5.3910833333333334,
+            "dec_str":"-05 23 27.9",
+            "exptime":30.0,
+            "filter":"O-III",
+            "height_px":1017,
+            "imagetype":"LIGHT",
+            "indexing_version":"0.1",
+            "instrument":"SBIG STL-6303 3 CCD Camera",
+            "object":"M_42",
+            "observer":"Stephen J Fossey",
+            "obsnight_str":"2016-09-24",
+            "ra_float":83.82204166666666,
+            "ra_str":"05 35 17.29",
+            "result":"success"
+            "telescope":"ACP->TheSky",
+            "width_px":1534
+        }
+
+        All these keywords need to be mapped into the database table.
+
+        Note that:
+            The "result" keywords is "success" if the file is correctly parse
+            Keywords telescope, instrument, observer, object can be empty strings
+            Keyword filter is an empty string when "imagetype"="BIAS"
+
+
+    If something goes wrong, it returns an error:
+
+        {
+            "error_description":"File not found",
+            "result":"ERROR"
+        }
+
