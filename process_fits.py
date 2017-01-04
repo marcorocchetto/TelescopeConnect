@@ -4,7 +4,6 @@ import pytz
 from astropy.io import fits
 import sys
 
-
 #loading parameter file parser
 parser = argparse.ArgumentParser()
 parser.add_argument('--fits_fname',
@@ -15,7 +14,7 @@ parser.add_argument('--fits_fname',
 parser.add_argument('--time_zone',
                     dest='time_zone',
                     type=str,
-                    default=False,
+                    default='Europe/London',
                     )
 
 options = parser.parse_args()
@@ -119,6 +118,22 @@ ccdtemp = header['CCD-TEMP']
 width_px = len(data[0,:])
 height_px = len(data[:,0])
 
+# set filename
+filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
+if imagetype == 'LIGHT':
+    if 'OBJECT' in header:
+        filename += '-' + header['OBJECT']
+    filename += header['FILTER']
+if imagetype == 'BIAS':
+    filename += '-Bias'
+if imagetype == 'DARK':
+    filename += '-Dark'
+if imagetype == 'FLAT':
+    filename += '-Flat'
+    filename += header['FILTER']
+filename += '.fits'
+filename = filename.replace(' ', '_')
+
 output = {
     'dateobs_utc_str': dateobs_utc_str,
     'obsnight_str': obsnight_str,
@@ -137,6 +152,7 @@ output = {
     'height_px': height_px,
     'ccdtemp': ccdtemp,
     'indexing_version': get_Version(),
+    'filename': filename,
 }
 
 print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
