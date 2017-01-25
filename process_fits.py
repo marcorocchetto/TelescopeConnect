@@ -1,158 +1,107 @@
-from library import *
+'''
+
+FPS.1b Part 2 – Processing of raw Light frames
+
+The input to the script is a json file with the following format. See input_examples
+
+Example:
+
+python process_fits.py --json=input_examples/process_fits.json
+
+'''
+
 import argparse
-import pytz
 from astropy.io import fits
 import sys
+import numpy as np
+from time import strftime
+import os
+sys.path.append('./library')
+
+import general
+from general import *
 
 #loading parameter file parser
 parser = argparse.ArgumentParser()
-parser.add_argument('--fits_fname',
-                    dest='fits_fname',
+parser.add_argument('--json',
+                    dest='json_filename',
                     type=str,
                     default=False,
-                    )
-parser.add_argument('--time_zone',
-                    dest='time_zone',
-                    type=str,
-                    default='Europe/London',
                     )
 
 options = parser.parse_args()
 
-if not options.fits_fname:
-    RaiseError('File name not specified')
+if not options.json_filename:
+    RaiseError('You need an inpunt JSON file')
 
-if not options.time_zone:
-    RaiseError('Time zone not specified')
-else:
+json_data = json.loads(open(options.json_filename).read())
+
+# read all files from list
+images = []
+for image_fname in json_data['input_fits']:
+    images.append(get_ImageData(image_fname))
+
+# todo: check size of frame
+
+output_fits = []
+
+result = 'SUCCESS'
+
+for idx, image in enumerate(images):
+
+    # get output filename
+    filename, file_extension = os.path.splitext(os.path.basename(json_data['input_fits'][idx]))
+    fname_out = '%s_processed.fits' % filename
+    fname_out_fullpath = os.path.join(json_data['output_folder'], fname_out)
+
+    # check if file already exists
+    if os.path.isfile(fname_out_fullpath):
+        RaiseError('File %s already exists' % fname_out_fullpath)
+
     try:
-        local = pytz.timezone(options.time_zone)
-    except pytz.exceptions.UnknownTimeZoneError:
-        RaiseError('Unknown timezone')
 
+        # subtract MasterBias, if present
+        if "master_bias" in json_data:
+            master_bias = get_ImageData(json_data['master_bias'])[0]
+            images[idx][0][:, :] = images[idx][0] - master_bias
 
-# check file exists
-if not os.path.isfile(options.fits_fname):
-    RaiseError('File not found')
+        # subtract MasterDark, if present
+        if "master_dark" in json_data:
+            master_dark = get_ImageData(json_data['master_dark'])[0]
+            images[idx][0][:, :] = images[idx][0] - master_dark
+            exptime = images[idx][1]['EXPTIME']
+            expfactor = exptime / 60.
+            images[idx][0][:, :] = images[idx][0] - master_dark * expfactor
 
-# open fits file hdu
-try:
-    hdulist = fits.open(options.fits_fname)
-except:
-    RaiseError('Unexpected error:', sys.exc_info()[0])
+        # divide by MasterFlat
+        if "master_flat" in json_data:
+            master_flat = get_ImageData(json_data['master_flat'])[0]
+            images[idx][0][:, :] = images[idx][0] / master_flat
 
-# get header & data
-header = hdulist[0].header
-data = hdulist[0].data
+        # use header of first file and add some comments
+        header_out = images[0][1]
+        header_out['PROC'] = 'True'
+        header_out['COMMENT'] = 'Processed with CORTEX %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
+        hdu = fits.PrimaryHDU(images[idx][0], header=header_out)
+        hdu.writeto(fname_out_fullpath)
 
-# check that some required FITS headers are present, otherwise raise error
-header_keys = ['DATE-OBS', 'IMAGETYP', 'CCD-TEMP', 'EXPTIME']
-for key in header_keys:
-    if not key in hdulist[0].header:
-        RaiseError('Header key `%s` missing' % key)
+    except:
 
-# determine Image type from header IMAGETYP
-imagetype = get_ImageType(header['IMAGETYP'])
-if not imagetype:
-    RaiseError('Cannot determine ImageType')
+        result = 'WARNING'
+        fname_out_fullpath = ''
 
-# Date and time of observation: keyword DATE-OBS
-dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
+        warning_description = 'One or more images have not been processed'
 
-
-# Determine OBSNIGHT, i.e. night of observation
-obsnight_str = get_ObsNight(dateobs_utc_datetime, local)
-
-
-# RA and DEC, header keys: OBJCTRA, OBJCTDEC or RA, DEC
-if 'OBJCTRA' in header:
-    ra_str = header['OBJCTRA']
-    ra = SexToDeg(ra_str, 'ra')
-elif 'RA' in header:
-    ra_str = header['RA']
-    ra = SexToDeg(ra_str, 'ra')
-else:
-    ra_str = ''
-    ra = None
-if 'OBJCTDEC' in header:
-    dec_str = header['OBJCTDEC']
-    dec = SexToDeg(dec_str, 'dec')
-elif 'DEC' in header:
-    dec_str = header['OBJCTDEC']
-    dec = SexToDeg(dec_str, 'dec')
-else:
-    dec_str = ''
-    dec = None
-
-# optional headers: TELESCOP, INSTRUME, OBSERVER, OBJECT
-if 'TELESCOP' in header:
-    telescope = header['TELESCOP']
-else:
-    telescope = ''
-if 'INSTRUME' in header:
-    instrument = header['INSTRUME']
-else:
-    instrument = ''
-if 'OBSERVER' in header:
-    observer = header['OBSERVER']
-else:
-    observer = ''
-if 'OBJECT' in header:
-    object = header['OBJECT']
-else:
-    object = ''
-
-# exposure time
-exptime = header['EXPTIME']
-
-# filter
-if 'FILTER' in header and imagetype != 'BIAS':
-    filter = header['FILTER']
-else:
-    filter = ''
-
-# ccd temperature
-ccdtemp = header['CCD-TEMP']
-
-# image size
-width_px = len(data[0,:])
-height_px = len(data[:,0])
-
-# set filename
-filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
-if imagetype == 'LIGHT':
-    if 'OBJECT' in header:
-        filename += '-' + header['OBJECT']
-    filename += header['FILTER']
-if imagetype == 'BIAS':
-    filename += '-Bias'
-if imagetype == 'DARK':
-    filename += '-Dark'
-if imagetype == 'FLAT':
-    filename += '-Flat'
-    filename += header['FILTER']
-filename += '.fits'
-filename = filename.replace(' ', '_')
+    # append filename to list of fits images
+    output_fits.append(fname_out_fullpath)
 
 output = {
-    'dateobs_utc_str': dateobs_utc_str,
-    'obsnight_str': obsnight_str,
-    'imagetype': imagetype,
-    'object': object,
-    'ra_float': ra,
-    'dec_float': dec,
-    'ra_str': ra_str,
-    'dec_str': dec_str,
-    'telescope': telescope,
-    'instrument': instrument,
-    'observer': observer,
-    'exptime': exptime,
-    'filter': filter,
-    'width_px': width_px,
-    'height_px': height_px,
-    'ccdtemp': ccdtemp,
-    'indexing_version': get_Version(),
-    'filename': filename,
+    'result': result,
+    'output_fits': output_fits,
 }
+
+if result == 'WARNING':
+    output['warning_description'] = warning_description
+
 
 print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
