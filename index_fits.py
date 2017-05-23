@@ -50,11 +50,17 @@ except:
 header = hdulist[0].header
 data = hdulist[0].data
 
+# temporary fix for PinPoint simulated images
+if not 'IMAGETYP' in hdulist[0].header:
+    header['IMAGETYP'] = 'Light'
+
 # check that some required FITS headers are present, otherwise raise error
-header_keys = ['DATE-OBS', 'IMAGETYP', 'CCD-TEMP', 'EXPTIME']
+#header_keys = ['DATE-OBS', 'IMAGETYP', 'CCD-TEMP', 'EXPTIME']
+header_keys = ['DATE-OBS', 'CCD-TEMP', 'EXPTIME'] # temp fix
 for key in header_keys:
     if not key in hdulist[0].header:
         RaiseError('Header key `%s` missing' % key)
+
 
 # determine Image type from header IMAGETYP
 imagetype = get_ImageType(header['IMAGETYP'])
