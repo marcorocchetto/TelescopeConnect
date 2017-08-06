@@ -9,40 +9,57 @@ sys.path.append('./library')
 import general
 from general import *
 
+# #loading parameter file parser
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--fits_fname',
+#                     dest='fits_fname',
+#                     type=str,
+#                     default=False,
+#                     )
+# parser.add_argument('--time_zone',
+#                     dest='time_zone',
+#                     type=str,
+#                     default='Europe/London',
+#                     )
+# 
+# options = parser.parse_args()
+
+
 #loading parameter file parser
 parser = argparse.ArgumentParser()
-parser.add_argument('--fits_fname',
-                    dest='fits_fname',
+parser.add_argument('--json',
+                    dest='json_filename',
                     type=str,
                     default=False,
-                    )
-parser.add_argument('--time_zone',
-                    dest='time_zone',
-                    type=str,
-                    default='Europe/London',
                     )
 
 options = parser.parse_args()
 
-if not options.fits_fname:
+if not options.json_filename:
+    RaiseError('You need an inpunt JSON file')
+
+json_data = json.loads(open(options.json_filename).read())
+
+
+if not json_data['fits_fname']:
     RaiseError('File name not specified')
 
-if not options.time_zone:
+if not json_data['time_zone']:
     RaiseError('Time zone not specified')
 else:
     try:
-        local = pytz.timezone(options.time_zone)
+        local = pytz.timezone(json_data['time_zone'])
     except pytz.exceptions.UnknownTimeZoneError:
         RaiseError('Unknown timezone')
 
 
 # check file exists
-if not os.path.isfile(options.fits_fname):
+if not os.path.isfile(json_data['fits_fname']):
     RaiseError('File not found')
 
 # open fits file hdu
 try:
-    hdulist = fits.open(options.fits_fname)
+    hdulist = fits.open(json_data['fits_fname'])
 except:
     RaiseError('Unexpected error:', sys.exc_info()[0])
 
@@ -142,8 +159,18 @@ if imagetype == 'DARK':
 if imagetype == 'FLAT':
     filename += '-Flat'
     filename += header['FILTER']
-filename += '.fits'
 filename = filename.replace(' ', '_')
+
+filename_fits += '.fits'
+
+filename_jpg_full += '.jpg'
+filename_jpg_thumb += '_thumb.jpg'
+
+path_jpg_full = os.path.join(json_data['output_folder'], filename_jpg_full)
+path_jpg_thumb = os.path.join(json_data['output_folder'], filename_jpg_thumb)
+
+os.system("/usr/bin/convert '" + json_data['fits_fname'] + "' -linear-stretch 600x1500 '" + path_jpg_full + "'")
+os.system("/usr/bin/convert '" + json_data['fits_fname'] + "' -linear-stretch 600x1500 -resize 10% '" + path_jpg_thumb + "'")
 
 output = {
     'result': 'SUCCESS',
@@ -165,6 +192,8 @@ output = {
     'ccdtemp': ccdtemp,
     'indexing_version': get_Version(),
     'filename': filename,
+    'jpg_full': filename_jpg_full,
+    'jpg_thumb': filename_jpg_thumb
 }
 
 print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
