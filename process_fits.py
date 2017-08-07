@@ -54,13 +54,13 @@ for idx, image in enumerate(images):
     filename, file_extension = os.path.splitext(os.path.basename(json_data['input_fits'][idx]))
 
     filename_fits = '%s_processed.fits' % filename
-    path_fits = os.path.join(json_data['output_folder'], filename_fits)
+    path_fits = os.path.abspath(os.path.join(json_data['output_folder'], filename_fits))
 
     filename_jpg_large = '%s_processed.jpg' % filename
-    path_jpg_large  = os.path.join(json_data['output_folder'], filename_jpg_large)
+    path_jpg_large  = os.path.abspath(os.path.join(json_data['output_folder'], filename_jpg_large))
 
     filename_jpg_thumb = '%s_processed_thumb.jpg' % filename
-    path_jpg_thumb = os.path.join(json_data['output_folder'], filename_jpg_thumb)
+    path_jpg_thumb = os.path.abspath(os.path.join(json_data['output_folder'], filename_jpg_thumb))
 
 
     # check if output fits file already exists
@@ -95,8 +95,8 @@ for idx, image in enumerate(images):
         hdu.writeto(fname_out_fits_path)
 
         # generate previews
-        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x'" + path_jpg_large + "'")
-        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 100x'" + path_jpg_thumb + "'")
+        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x '" + path_jpg_large + "'")
+        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 100x '" + path_jpg_thumb + "'")
 
     except:
 
