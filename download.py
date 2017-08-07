@@ -61,7 +61,6 @@ shutil.make_archive(os.path.join(json_data['output_folder'], random_string), 'zi
 shutil.rmtree(zip_directory)
 
 print(json.dumps({'result': 'SUCCESS',
-                  'output_file': output_filename,
-                  'output_folder': os.path.abspath(json_data['output_folder'])},
+                  'output_file': os.path.abspath(os.path.join(json_data['output_folder'], output_filename))},
                  separators=(',', ':'), indent=4))
 sys.exit()
