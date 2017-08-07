@@ -91,8 +91,10 @@ for idx, image in enumerate(images):
         header_out = images[0][1]
         header_out['PROC'] = 'True'
         header_out['COMMENT'] = 'Processed %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
+
+        print(header_out)
+
         hdu = fits.PrimaryHDU(images[idx][0], header=header_out)
-        
         hdu.writeto(path_fits)
 
         # generate previews
