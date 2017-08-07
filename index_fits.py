@@ -206,8 +206,8 @@ output = {
     'ccdtemp': ccdtemp,
     'indexing_version': get_Version(),
     'filename': filename,
-    'jpg_full': filename_jpg_full,
-    'jpg_thumb': filename_jpg_thumb
+    'jpg_full': path_jpg_full,
+    'jpg_thumb': path_jpg_thumb
 }
 
 print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
