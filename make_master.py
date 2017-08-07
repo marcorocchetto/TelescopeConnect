@@ -73,9 +73,9 @@ if json_data['make_type'].upper() == 'BIAS'\
     filename_jpg_large = filename + '.jpg'
     filename_jpg_thumb = filename + '_thumb.jpg'
 
-    path_fits = os.path.join(json_data['output_folder'], filename_fits)
-    path_jpg_large = os.path.join(json_data['output_folder'], filename_jpg_large)
-    path_jpg_thumb = os.path.join(json_data['output_folder'], filename_jpg_thumb)
+    path_fits = os.path.abspath(os.path.join(json_data['output_folder'], filename_fits))
+    path_jpg_large = os.path.abspath(os.path.join(json_data['output_folder'], filename_jpg_large))
+    path_jpg_thumb = os.path.abspath(os.path.join(json_data['output_folder'], filename_jpg_thumb))
 
     # check ifoutput fits file already exists
     if os.path.isfile(path_fits):
@@ -134,9 +134,10 @@ if json_data['make_type'].upper() == 'BIAS'\
         header_out['EXPTIME'] = 60. # exp time is 60 if Master Dark frame
 
     hdu = fits.PrimaryHDU(master_image, header=header_out)
-    hdu.writeto(filename_fits)
 
-    os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x'" + path_jpg_large + "'")
+    hdu.writeto(path_fits)
+
+    os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x '" + path_jpg_large + "'")
     os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 100x '" + path_jpg_thumb + "'")
 
     output = {
