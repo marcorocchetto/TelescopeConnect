@@ -67,7 +67,7 @@ for idx, image in enumerate(images):
     if os.path.isfile(filename_fits):
         RaiseError('File %s already exists' % filename_fits)
 
-    try:
+#    try:
 
         # subtract MasterBias, if present
         if "master_bias" in json_data:
@@ -98,13 +98,13 @@ for idx, image in enumerate(images):
         os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x '" + path_jpg_large + "'")
         os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 100x '" + path_jpg_thumb + "'")
 
-    except:
-
-        result = 'WARNING'
-        path_fits = ''
-        path_jpg_large = ''
-        path_jpg_thumb = ''
-        warning_description = 'One or more images have not been processed'
+    # except:
+    #
+    #     result = 'WARNING'
+    #     path_fits = ''
+    #     path_jpg_large = ''
+    #     path_jpg_thumb = ''
+    #     warning_description = 'One or more images have not been processed'
 
     # append filename to list of fits images
     output_fits.append(path_fits)
