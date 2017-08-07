@@ -69,6 +69,8 @@ for idx, image in enumerate(images):
 
 #    try:
 
+        print(images[idx][0])
+
         # subtract MasterBias, if present
         if "master_bias" in json_data:
             master_bias = get_ImageData(json_data['master_bias'])[0]
