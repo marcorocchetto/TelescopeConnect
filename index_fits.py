@@ -3,8 +3,9 @@ import pytz
 from astropy.io import fits
 import sys
 import json
+import os
 
-sys.path.append('./library')
+sys.path.append(os.path.join(os.path.realpath(__file__), 'library'))
 
 import general
 from general import *

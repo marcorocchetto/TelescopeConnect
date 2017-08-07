@@ -16,7 +16,8 @@ import sys
 import numpy as np
 from time import strftime
 import os
-sys.path.append('./library')
+
+sys.path.append(os.path.join(os.path.realpath(__file__), 'library'))
 
 import general
 from general import *
