@@ -1,17 +1,17 @@
 {
     "combine_method":"median",
     "input_fits":[
-        "data/2016-09-08/calibration/fits/2016-09-09T04-57-15-Bias.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-57-25-Bias.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-57-36-Bias.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-57-45-Bias.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-57-55-Bias.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-58-06-Bias.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-58-16-Bias.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-58-25-Bias.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-58-36-Bias.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-58-46-Bias.fits"
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-57-15-Bias.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-57-25-Bias.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-57-36-Bias.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-57-45-Bias.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-57-55-Bias.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-58-06-Bias.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-58-16-Bias.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-58-25-Bias.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-58-36-Bias.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-58-46-Bias.fits"
     ],
     "make_type":"Bias",
-    "output_folder":"output_data"
+    "output_folder":"/home/telescope/TelescopeConnect/output_data"
 }

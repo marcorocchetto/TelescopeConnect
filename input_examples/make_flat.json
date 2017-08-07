@@ -1,21 +1,21 @@
 {
     "combine_method":"median",
     "input_fits":[
-        "data/2016-09-08/calibration/fits/2016-09-08T18-52-17-Rc-Flat.fits",
-        "data/2016-09-08/calibration/fits/2016-09-08T18-52-37-Rc-Flat.fits",
-        "data/2016-09-08/calibration/fits/2016-09-08T18-52-58-Rc-Flat.fits",
-        "data/2016-09-08/calibration/fits/2016-09-08T18-53-19-Rc-Flat.fits",
-        "data/2016-09-08/calibration/fits/2016-09-08T18-53-40-Rc-Flat.fits",
-        "data/2016-09-08/calibration/fits/2016-09-08T18-54-02-Rc-Flat.fits",
-        "data/2016-09-08/calibration/fits/2016-09-08T18-54-25-Rc-Flat.fits",
-        "data/2016-09-08/calibration/fits/2016-09-08T18-54-48-Rc-Flat.fits",
-        "data/2016-09-08/calibration/fits/2016-09-08T18-55-12-Rc-Flat.fits",
-        "data/2016-09-08/calibration/fits/2016-09-08T18-55-37-Rc-Flat.fits"
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-52-17-Rc-Flat.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-52-37-Rc-Flat.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-52-58-Rc-Flat.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-53-19-Rc-Flat.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-53-40-Rc-Flat.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-54-02-Rc-Flat.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-54-25-Rc-Flat.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-54-48-Rc-Flat.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-55-12-Rc-Flat.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-08T18-55-37-Rc-Flat.fits"
     ],
-    "master_bias": "output_data/2016-09-09T04-57-15_MasterBias.fits",
-    "master_dark": "output_data/2016-09-09T04-33-53_T-10C_60s_MasterDark.fits",
+    "master_bias": "/home/telescope/TelescopeConnect/output_data/2016-09-09T04-57-15_MasterBias.fits",
+    "master_dark": "/home/telescope/TelescopeConnect/output_data/2016-09-09T04-33-53_T-10C_60s_MasterDark.fits",
     "make_type":"Flat",
     "ccd_temp_avg": -10,
     "filter": "Rc",
-    "output_folder":"output_data"
+    "output_folder":"/home/telescope/TelescopeConnect/output_data"
 }

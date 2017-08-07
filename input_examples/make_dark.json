@@ -1,19 +1,19 @@
 {
     "combine_method":"median",
     "input_fits":[
-        "data/2016-09-08/calibration/fits/2016-09-09T04-33-53-Dark.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-35-04-Dark.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-36-14-Dark.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-37-24-Dark.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-38-34-Dark.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-39-45-Dark.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-40-55-Dark.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-42-05-Dark.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-43-15-Dark.fits",
-        "data/2016-09-08/calibration/fits/2016-09-09T04-44-25-Dark.fits"
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-33-53-Dark.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-35-04-Dark.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-36-14-Dark.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-37-24-Dark.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-38-34-Dark.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-39-45-Dark.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-40-55-Dark.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-42-05-Dark.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-43-15-Dark.fits",
+        "/home/telescope/TelescopeConnect/data/2016-09-08/calibration/fits/2016-09-09T04-44-25-Dark.fits"
     ],
-    "master_bias": "output_data/2016-09-09T04-57-15_MasterBias.fits",
+    "master_bias": "/home/telescope/TelescopeConnect/output_data/2016-09-09T04-57-15_MasterBias.fits",
     "make_type":"Dark",
     "ccd_temp_avg": -10,
-    "output_folder":"output_data"
+    "output_folder":"/home/telescope/TelescopeConnect/output_data"
 }
