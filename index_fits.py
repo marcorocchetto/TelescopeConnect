@@ -175,7 +175,7 @@ if imagetype == 'FLAT':
     filename += header['FILTER']
 filename = filename.replace(' ', '_')
 
-filename_fits += '.fits'
+filename_fits = filename + '.fits'
 
 filename_jpg_full += '.jpg'
 filename_jpg_thumb += '_thumb.jpg'
