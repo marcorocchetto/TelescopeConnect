@@ -6,7 +6,7 @@ The input to the script is a json file with the following format. See input_exam
 
 Example:
 
-python index_fits.py --json=input_examples/index_fits.json
+python /home/telescope/TelescopeConnect/index_fits.py --json=/home/telescope/TelescopeConnect/input_examples/index_fits.json
 
 '''
 

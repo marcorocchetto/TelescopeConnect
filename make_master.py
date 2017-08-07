@@ -1,14 +1,14 @@
 '''
 
-FPS.1a Part 1 – Creation of Master Calibration Files: Master Bias, Master Dark and Master Flat
+Creation of Master Calibration Files: Master Bias, Master Dark and Master Flat
 
 The input to the script is a json file with the following format. See input_examples
 
 For Master Bias, Dark, Flat creation:
 
-python make_master.py --json=input_examples/make_bias.json
-python make_master.py --json=input_examples/make_dark.json
-python make_master.py --json=input_examples/make_flat.json
+python /home/telescope/TelescopeConnect/make_master.py --json=/home/telescope/TelescopeConnect/input_examples/make_bias.json
+python /home/telescope/TelescopeConnect/make_master.py --json=/home/telescope/TelescopeConnect/input_examples/make_dark.json
+python /home/telescope/TelescopeConnect/make_master.py --json=/home/telescope/TelescopeConnect/input_examples/make_flat.json
 
 '''
 

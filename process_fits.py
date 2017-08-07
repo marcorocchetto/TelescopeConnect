@@ -1,12 +1,12 @@
 '''
 
-FPS.1b Part 2 – Processing of raw Light frames
+Processing of raw Light frames
 
 The input to the script is a json file with the following format. See input_examples
 
 Example:
 
-python process_fits.py --json=input_examples/process_fits.json
+python /home/telescope/TelescopeConnect/process_fits.py --json=/home/telescope/TelescopeConnect/input_examples/process_fits.json
 
 '''
 
@@ -67,47 +67,45 @@ for idx, image in enumerate(images):
     if os.path.isfile(filename_fits):
         RaiseError('File %s already exists' % filename_fits)
 
-#    try:
+    try:
 
-    # subtract MasterBias, if present
-    if "master_bias" in json_data:
-        master_bias = get_ImageData(json_data['master_bias'])[0]
-        images[idx][0][:, :] = images[idx][0] - master_bias
+        # subtract MasterBias, if present
+        if "master_bias" in json_data:
+            master_bias = get_ImageData(json_data['master_bias'])[0]
+            images[idx][0][:, :] = images[idx][0] - master_bias
 
-    # subtract MasterDark, if present
-    if "master_dark" in json_data:
-        master_dark = get_ImageData(json_data['master_dark'])[0]
-        images[idx][0][:, :] = images[idx][0] - master_dark
-        exptime = images[idx][1]['EXPTIME']
-        expfactor = exptime / 60.
-        images[idx][0][:, :] = images[idx][0] - master_dark * expfactor
+        # subtract MasterDark, if present
+        if "master_dark" in json_data:
+            master_dark = get_ImageData(json_data['master_dark'])[0]
+            images[idx][0][:, :] = images[idx][0] - master_dark
+            exptime = images[idx][1]['EXPTIME']
+            expfactor = exptime / 60.
+            images[idx][0][:, :] = images[idx][0] - master_dark * expfactor
 
-    # divide by MasterFlat
-    if "master_flat" in json_data:
-        master_flat = get_ImageData(json_data['master_flat'])[0]
-        images[idx][0][:, :] = images[idx][0] / master_flat
+        # divide by MasterFlat
+        if "master_flat" in json_data:
+            master_flat = get_ImageData(json_data['master_flat'])[0]
+            images[idx][0][:, :] = images[idx][0] / master_flat
 
-    # use header of first file and add some comments
-    header_out = images[0][1]
-    header_out['PROC'] = 'True'
-    header_out['COMMENT'] = 'Processed %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
+        # use header of first file and add some comments
+        header_out = images[0][1]
+        header_out['PROC'] = 'True'
+        header_out['COMMENT'] = 'Processed %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
 
-    print(header_out)
+        hdu = fits.PrimaryHDU(images[idx][0], header=header_out)
+        hdu.writeto(path_fits)
 
-    hdu = fits.PrimaryHDU(images[idx][0], header=header_out)
-    hdu.writeto(path_fits)
+        # generate previews
+        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x '" + path_jpg_large + "'")
+        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 100x '" + path_jpg_thumb + "'")
 
-    # generate previews
-    os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x '" + path_jpg_large + "'")
-    os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 100x '" + path_jpg_thumb + "'")
+    except:
 
-    # except:
-    #
-    #     result = 'WARNING'
-    #     path_fits = ''
-    #     path_jpg_large = ''
-    #     path_jpg_thumb = ''
-    #     warning_description = 'One or more images have not been processed'
+        result = 'WARNING'
+        path_fits = ''
+        path_jpg_large = ''
+        path_jpg_thumb = ''
+        warning_description = 'One or more images have not been processed'
 
     # append filename to list of fits images
     output_fits.append(path_fits)

@@ -6,7 +6,7 @@ The input to the script is a json file with the following format. See input_exam
 
 Example:
 
-python download.py --json=input_examples/download_files.json
+python /home/telescope/TelescopeConnect/download.py --json=/home/telescope/TelescopeConnect/input_examples/download_files.json
 
 '''
 
@@ -19,10 +19,9 @@ import os
 import zipfile, random, string
 import shutil
 
-sys.path.append('./library')
 
-import general
-from general import *
+import library.general
+from library.general import *
 
 #loading parameter file parser
 parser = argparse.ArgumentParser()
@@ -48,7 +47,7 @@ json_data = json.loads(open(options.json_filename).read())
 random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
 
 # create directory for files to be compressed
-zip_directory = os.path.join(json_data['output_folder'], random_string)
+zip_directory = os.path.abspath(os.path.join(json_data['output_folder'], random_string))
 if not os.path.exists(zip_directory):
     os.makedirs(zip_directory)
 
@@ -63,6 +62,6 @@ shutil.rmtree(zip_directory)
 
 print(json.dumps({'result': 'SUCCESS',
                   'output_file': output_filename,
-                  'output_folder': json_data['output_folder']},
+                  'output_folder': os.path.abspath(json_data['output_folder'])},
                  separators=(',', ':'), indent=4))
 sys.exit()
