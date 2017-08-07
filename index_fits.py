@@ -1,3 +1,16 @@
+'''
+
+Indexing of frames
+
+The input to the script is a json file with the following format. See input_examples
+
+Example:
+
+python index_fits.py --json=input_examples/index_fits.json
+
+'''
+
+
 import argparse
 import pytz
 from astropy.io import fits
@@ -5,10 +18,10 @@ import sys
 import json
 import os
 
-sys.path.append(os.path.join(os.path.realpath(__file__), 'library'))
+#sys.path.append(os.path.join(os.path.realpath(__file__), 'library'))
 
-import general
-from general import *
+import library.general
+from library.general import *
 
 # #loading parameter file parser
 # parser = argparse.ArgumentParser()
