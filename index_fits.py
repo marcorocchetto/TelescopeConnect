@@ -177,8 +177,8 @@ filename = filename.replace(' ', '_')
 
 filename_fits = filename + '.fits'
 
-filename_jpg_full += '.jpg'
-filename_jpg_thumb += '_thumb.jpg'
+filename_jpg_full = filename + '.jpg'
+filename_jpg_thumb = filename + '_thumb.jpg'
 
 path_jpg_full = os.path.join(json_data['output_folder'], filename_jpg_full)
 path_jpg_thumb = os.path.join(json_data['output_folder'], filename_jpg_thumb)
