@@ -92,7 +92,8 @@ for idx, image in enumerate(images):
         header_out['PROC'] = 'True'
         header_out['COMMENT'] = 'Processed %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
         hdu = fits.PrimaryHDU(images[idx][0], header=header_out)
-        hdu.writeto(fname_out_fits_path)
+        
+        hdu.writeto(path_fits)
 
         # generate previews
         os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x '" + path_jpg_large + "'")
