@@ -68,8 +68,9 @@ for idx, image in enumerate(images):
         RaiseError('File %s already exists' % filename_fits)
 
 #    try:
-
+        print(idx, 'start ciaociao')
         print(images[idx][0])
+        print(idx, 'end ciaociao')
 
         # subtract MasterBias, if present
         if "master_bias" in json_data:
