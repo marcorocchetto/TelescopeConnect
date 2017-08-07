@@ -95,8 +95,8 @@ for idx, image in enumerate(images):
         hdu.writeto(fname_out_fits_path)
 
         # generate previews
-        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 '" + path_jpg_large + "'")
-        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 10% '" + path_jpg_thumb + "'")
+        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x'" + path_jpg_large + "'")
+        os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 100x'" + path_jpg_thumb + "'")
 
     except:
 

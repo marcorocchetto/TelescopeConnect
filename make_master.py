@@ -136,8 +136,8 @@ if json_data['make_type'].upper() == 'BIAS'\
     hdu = fits.PrimaryHDU(master_image, header=header_out)
     hdu.writeto(filename_fits)
 
-    os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 '" + path_jpg_large + "'")
-    os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 10% '" + path_jpg_thumb + "'")
+    os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x'" + path_jpg_large + "'")
+    os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 100x '" + path_jpg_thumb + "'")
 
     output = {
         'result': 'SUCCESS',

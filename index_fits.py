@@ -181,8 +181,8 @@ filename_jpg_thumb = filename + '_thumb.jpg'
 path_jpg_large = os.path.join(json_data['output_folder'], filename_jpg_large)
 path_jpg_thumb = os.path.join(json_data['output_folder'], filename_jpg_thumb)
 
-os.system("/usr/bin/convert '" + json_data['fits_fname'] + "' -linear-stretch 600x1500 '" + path_jpg_large + "'")
-os.system("/usr/bin/convert '" + json_data['fits_fname'] + "' -linear-stretch 600x1500 -resize 10% '" + path_jpg_thumb + "'")
+os.system("/usr/bin/convert '" + json_data['fits_fname'] + "' -linear-stretch 600x1500 -resize 1024x'" + path_jpg_large + "'")
+os.system("/usr/bin/convert '" + json_data['fits_fname'] + "' -linear-stretch 600x1500 -resize 100x '" + path_jpg_thumb + "'")
 
 output = {
     'result': 'SUCCESS',
