@@ -18,8 +18,6 @@ import sys
 import json
 import os
 
-#sys.path.append(os.path.join(os.path.realpath(__file__), 'library'))
-
 import library.general
 from library.general import *
 

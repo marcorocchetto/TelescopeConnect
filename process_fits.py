@@ -17,10 +17,8 @@ import numpy as np
 from time import strftime
 import os
 
-sys.path.append(os.path.join(os.path.realpath(__file__), 'library'))
-
-import general
-from general import *
+import library.general
+from library.general import *
 
 #loading parameter file parser
 parser = argparse.ArgumentParser()
