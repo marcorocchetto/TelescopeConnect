@@ -44,7 +44,7 @@ class reduction(object):
         header = get_header(frames[0])
         header['NCOMBINE'] = len(frames)
         header['COMMENT'] = 'Processed with robopipe %s on %s' % (get_version(), timeproc)
-        hdu = fits.PrimaryHDU(master, header=header)
+        hdu = fits.PrimaryHDU(master.astype(np.uint16), header=header)
         fname = os.path.join(self.params.data_working_dir, self.data.rename(frames[0]).replace('.fits', '-master.fits'))
         hdu.writeto(fname)
 

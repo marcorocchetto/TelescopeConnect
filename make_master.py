@@ -133,7 +133,7 @@ if json_data['make_type'].upper() == 'BIAS'\
     if json_data['make_type'].upper() == 'DARK':
         header_out['EXPTIME'] = 60. # exp time is 60 if Master Dark frame
 
-    hdu = fits.PrimaryHDU(master_image, header=header_out)
+    hdu = fits.PrimaryHDU(master_image.astype(np.uint16), header=header_out)
 
     hdu.writeto(path_fits)
 
