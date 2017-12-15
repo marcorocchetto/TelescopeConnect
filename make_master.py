@@ -12,6 +12,9 @@ python /home/telescope/TelescopeConnect/make_master.py --json=/home/telescope/Te
 
 '''
 
+import time
+
+begin = time.time()
 
 import argparse
 from astropy.io import fits
@@ -22,6 +25,7 @@ import os
 
 import library.general
 from library.general import *
+
 
 #loading parameter file parser
 parser = argparse.ArgumentParser()
@@ -78,16 +82,21 @@ if json_data['make_type'].upper() == 'BIAS'\
     path_jpg_thumb = os.path.abspath(os.path.join(json_data['output_folder'], filename_jpg_thumb))
 
     # check ifoutput fits file already exists
-    if os.path.isfile(path_fits):
-        RaiseError('File %s already exists' % path_fits)
+    # if os.path.isfile(path_fits):
+    #     RaiseError('File %s already exists' % path_fits)
+
 
     if json_data['make_type'].upper() == 'DARK':
 
         # if dark, apply master bias to all raw darks
         master_bias = get_ImageData(json_data['master_bias'])[0]
         for idx, image in enumerate(images):
+
+            # remove bias
             images[idx][0][:,:] = images[idx][0]-master_bias
             # todo after bias subtraction we get darks with negative values...
+            images[idx][0][:, :][images[idx][0][:,:]<0] = 0.
+
 
             # normalise to exptime of 60 sec
             exptime = images[idx][1]['EXPTIME']
@@ -99,14 +108,17 @@ if json_data['make_type'].upper() == 'BIAS'\
         master_bias = get_ImageData(json_data['master_bias'])[0]
         master_dark = get_ImageData(json_data['master_dark'])[0]
         for idx, image in enumerate(images):
+            #remove bias
             images[idx][0][:, :] = images[idx][0] - master_bias
 
-            # subtract dark; scale dark to exptime of flat
+            # scale flat to 60sec exp; subtract dark;
             exptime = images[idx][1]['EXPTIME']
-            expfactor = exptime/60.
-            images[idx][0][:, :] = images[idx][0] - master_dark*expfactor
 
+            images[idx][0][:, :] = (60./exptime)*images[idx][0][:, :] - master_dark
 
+            images[idx][0][:, :][images[idx][0][:, :] < 0] = 0.
+
+            images[idx][0][:, :] = images[idx][0][:, :]/np.average(images[idx][0][:, :])
 
     # combine frames to create Master frame
 
@@ -118,24 +130,25 @@ if json_data['make_type'].upper() == 'BIAS'\
     # get average or median of all corrected input frames to create master
     if json_data['combine_method'] == 'average':
         master_image = np.average(master_image_all, axis=0)
+
     elif json_data['combine_method'] == 'median':
         master_image = np.median(master_image_all, axis=0)
 
-    # if flat, normalise
     if json_data['make_type'].upper() == 'FLAT':
-        master_image = master_image / np.average(master_image)
+        # rescale to ~ 30k counts max
+        master_image = 3e4 * master_image / np.average(master_image)
 
     # create output fits frame
 
     # use header of first file and add some comments
     header_out['NCOMBINE'] = len(images)
     header_out['COMMENT'] = 'Processed with CORTEX %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
-    if json_data['make_type'].upper() == 'DARK':
-        header_out['EXPTIME'] = 60. # exp time is 60 if Master Dark frame
+    if json_data['make_type'].upper() == 'DARK' or json_data['make_type'].upper() == 'FLAT':
+        header_out['EXPTIME'] = 60. # exp time is 60 if Master Dark frame or Master Flat
 
-    hdu = fits.PrimaryHDU(master_image.astype(np.uint16), header=header_out)
+    hdu = fits.PrimaryHDU(master_image, header=header_out)
 
-    hdu.writeto(path_fits)
+    hdu.writeto(path_fits, clobber=True)
 
     os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x '" + path_jpg_large + "'")
     os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 100x '" + path_jpg_thumb + "'")

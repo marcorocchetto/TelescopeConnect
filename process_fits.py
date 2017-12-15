@@ -64,9 +64,9 @@ for idx, image in enumerate(images):
 
 
     # check if output fits file already exists
-    if os.path.isfile(filename_fits):
-        RaiseError('File %s already exists' % filename_fits)
-
+    # if os.path.isfile(filename_fits):
+    #     RaiseError('File %s already exists' % filename_fits)
+    #
     try:
 
         # subtract MasterBias, if present
@@ -82,10 +82,12 @@ for idx, image in enumerate(images):
             expfactor = exptime / 60.
             images[idx][0][:, :] = images[idx][0] - master_dark * expfactor
 
+        images[idx][0][:, :][images[idx][0][:, :] < 0] = 0.
+
         # divide by MasterFlat
         if "master_flat" in json_data:
             master_flat = get_ImageData(json_data['master_flat'])[0]
-            images[idx][0][:, :] = images[idx][0] / master_flat
+            images[idx][0][:, :] = images[idx][0] / (master_flat / np.average(master_flat))
 
         # use header of first file and add some comments
         header_out = images[0][1]
@@ -93,7 +95,7 @@ for idx, image in enumerate(images):
         header_out['COMMENT'] = 'Processed %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
 
         hdu = fits.PrimaryHDU(images[idx][0].astype(np.uint16), header=header_out)
-        hdu.writeto(path_fits)
+        hdu.writeto(path_fits, clobber=True)
 
         # generate previews
         os.system("/usr/bin/convert '" + path_fits + "' -linear-stretch 600x1500 -resize 1024x '" + path_jpg_large + "'")
