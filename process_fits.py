@@ -68,6 +68,9 @@ for idx, image in enumerate(images):
     #     RaiseError('File %s already exists' % filename_fits)
     #
     try:
+        
+        # Add a Pedestal of 100 ADUs
+        images[idx][0][:, :] += 100
 
         # subtract MasterBias, if present
         if "master_bias" in json_data:
