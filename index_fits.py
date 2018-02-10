@@ -146,10 +146,16 @@ else:
 exptime = header['EXPTIME']
 
 # filter
+if not 'FILTER' in header:
+    header['FILTER'] = 'Clear'
+
 if 'FILTER' in header and imagetype != 'BIAS':
     filter = header['FILTER']
 else:
     filter = ''
+
+
+
 
 # ccd temperature
 ccdtemp = header['CCD-TEMP']
