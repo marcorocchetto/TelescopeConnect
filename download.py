@@ -68,31 +68,31 @@ for image_fname in json_data['input_fits']:
     imagetype = get_ImageType(header['IMAGETYP'])
     if imagetype == 'LIGHT':
         if 'OBJECT' in header:
-            filename += '-' + header['OBJECT']
+            filename += '_' + header['OBJECT']
         filename += header['FILTER']
-        filename += '-T'
+        filename += '_T'
         filename += str(ccdtemp)
     if imagetype == 'BIAS':
-        filename += '-Bias'
+        filename += '_Bias'
     if imagetype == 'MASTER BIAS':
-        filename += '-MasterBias'
+        filename += '_MasterBias'
     if imagetype == 'DARK':
-        filename += '-Dark'
-        filename += '-T'
+        filename += '_Dark'
+        filename += '_T'
         filename += str(ccdtemp)
     if imagetype == 'MASTER DARK':
-        filename += '-MasterDark'
-        filename += '-T'
+        filename += '_MasterDark'
+        filename += '_T'
         filename += str(ccdtemp)
     if imagetype == 'FLAT':
-        filename += '-Flat-'
+        filename += '_Flat_'
         filename += header['FILTER']
-        filename += '-T'
+        filename += '_T'
         filename += str(ccdtemp)
     if imagetype == 'MASTER FLAT':
-        filename += '-MasterFlat-'
+        filename += '_MasterFlat_'
         filename += header['FILTER']
-        filename += '-T'
+        filename += '_T'
         filename += str(ccdtemp)
 
     filename = filename.replace(' ', '_')
