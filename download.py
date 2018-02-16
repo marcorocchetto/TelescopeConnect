@@ -52,6 +52,32 @@ if not os.path.exists(zip_directory):
     os.makedirs(zip_directory)
 
 for image_fname in json_data['input_fits']:
+
+    # set filename
+    hdulist = fits.open(image_fname)
+    header = hdulist[0].header
+
+    # Date and time of observation: keyword DATE-OBS
+    dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
+    filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
+
+    # determine Image type from header IMAGETYP
+    imagetype = get_ImageType(header['IMAGETYP'])
+    if imagetype == 'LIGHT':
+        if 'OBJECT' in header:
+            filename += '-' + header['OBJECT']
+        filename += header['FILTER']
+    if imagetype == 'BIAS':
+        filename += '-Bias'
+    if imagetype == 'DARK':
+        filename += '-Dark'
+    if imagetype == 'FLAT':
+        filename += '-Flat'
+        filename += header['FILTER']
+    filename = filename.replace(' ', '_')
+    filename_fits = filename + '.fits'
+
+    # copy file to archive directory
     shutil.copy(image_fname, zip_directory)
 
 output_filename = random_string + '.zip'

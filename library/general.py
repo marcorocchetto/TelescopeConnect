@@ -26,6 +26,8 @@ def get_ImageType(imagetyp_header):
     dark_values = ['DARK', 'DARK FRAME']
     light_values = ['LIGHT FRAME', 'LIGHT']
 
+
+
     imagetype = False
     for value in flat_values:
         if imagetyp_header.upper() == value:
@@ -41,6 +43,12 @@ def get_ImageType(imagetyp_header):
             imagetype = 'LIGHT'
 
     return imagetype
+
+
+def get_ImageHeader(fname, index=0):
+    hdulist = fits.open(fname)
+    header = hdulist[index].header
+    return header
 
 def get_ImageData(fname, index=0):
     hdulist = fits.open(fname)
