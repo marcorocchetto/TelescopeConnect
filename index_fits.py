@@ -175,7 +175,7 @@ if imagetype == 'BIAS':
 if imagetype == 'DARK':
     filename += '-Dark'
 if imagetype == 'FLAT':
-    filename += '-Flat'
+    filename += '-Flat-'
     filename += header['FILTER']
 filename = filename.replace(' ', '_')
 

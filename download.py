@@ -72,7 +72,7 @@ for image_fname in json_data['input_fits']:
     if imagetype == 'DARK':
         filename += '-Dark'
     if imagetype == 'FLAT':
-        filename += '-Flat'
+        filename += '-Flat-'
         filename += header['FILTER']
     filename = filename.replace(' ', '_')
     filename_fits = filename + '.fits'
