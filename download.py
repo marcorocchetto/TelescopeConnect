@@ -78,7 +78,7 @@ for image_fname in json_data['input_fits']:
     filename_fits = filename + '.fits'
 
     # copy file to archive directory
-    shutil.copy(image_fname, zip_directory)
+    shutil.copy(image_fname, os.path.join(zip_directory, filename_fits))
 
 output_filename = random_string + '.zip'
 
