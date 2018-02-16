@@ -103,9 +103,10 @@ for image_fname in json_data['input_fits']:
     shutil.copy(image_fname, os.path.join(zip_directory, filename_fits))
 
 
-output_filename = 'TelescopeConnect_' + random_string + '.zip'
+output_filename_zip = 'TelescopeConnect_' + random_string + '.zip'
+output_filename = 'TelescopeConnect_' + random_string
 
-shutil.make_archive(os.path.join(json_data['output_folder'], random_string), 'zip', zip_directory)
+shutil.make_archive(os.path.join(json_data['output_folder'], output_filename), 'zip', zip_directory)
 
 shutil.rmtree(zip_directory)
 
