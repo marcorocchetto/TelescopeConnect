@@ -15,10 +15,10 @@ from astropy.io import fits
 import sys
 import numpy as np
 from time import strftime
+import time
 import os
 import zipfile, random, string
 import shutil
-
 
 import library.general
 from library.general import *
@@ -44,7 +44,7 @@ json_data = json.loads(open(options.json_filename).read())
 #     images.append(get_ImageData(image_fname))
 
 # TEMPORARY. THIS DOES NOT DO ANYTHING, JUST COMPRESS ALL FILES INTO SINGLE ZIP
-random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+#random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
 
 # create directory for files to be compressed
 zip_directory = os.path.abspath(os.path.join(json_data['output_folder'], random_string))
@@ -101,7 +101,9 @@ for image_fname in json_data['input_fits']:
     # copy file to archive directory
     shutil.copy(image_fname, os.path.join(zip_directory, filename_fits))
 
-output_filename = random_string + '.zip'
+
+random_string = str(int(time.time()/4/100))
+output_filename = 'TelescopeConnect_' + random_string + '.zip'
 
 shutil.make_archive(os.path.join(json_data['output_folder'], random_string), 'zip', zip_directory)
 
