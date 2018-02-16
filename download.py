@@ -57,6 +57,9 @@ for image_fname in json_data['input_fits']:
     hdulist = fits.open(image_fname)
     header = hdulist[0].header
 
+    # ccd temperature
+    ccdtemp = header['CCD-TEMP']
+
     # Date and time of observation: keyword DATE-OBS
     dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
     filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
@@ -67,13 +70,31 @@ for image_fname in json_data['input_fits']:
         if 'OBJECT' in header:
             filename += '-' + header['OBJECT']
         filename += header['FILTER']
+        filename += '-T'
+        filename += str(ccdtemp)
     if imagetype == 'BIAS':
         filename += '-Bias'
+    if imagetype == 'MASTER BIAS':
+        filename += '-MasterBias'
     if imagetype == 'DARK':
         filename += '-Dark'
+        filename += '-T'
+        filename += str(ccdtemp)
+    if imagetype == 'MASTER DARK':
+        filename += '-MasterDark'
+        filename += '-T'
+        filename += str(ccdtemp)
     if imagetype == 'FLAT':
         filename += '-Flat-'
         filename += header['FILTER']
+        filename += '-T'
+        filename += str(ccdtemp)
+    if imagetype == 'MASTER FLAT':
+        filename += '-MasterFlat-'
+        filename += header['FILTER']
+        filename += '-T'
+        filename += str(ccdtemp)
+
     filename = filename.replace(' ', '_')
     filename_fits = filename + '.fits'
 
