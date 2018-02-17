@@ -68,7 +68,7 @@ for idx, image in enumerate(images):
     #     RaiseError('File %s already exists' % filename_fits)
     #
     try:
-        
+
         # Add a Pedestal of 100 ADUs
         images[idx][0][:, :] += 100
 
@@ -93,7 +93,7 @@ for idx, image in enumerate(images):
             images[idx][0][:, :] = images[idx][0] / (master_flat / np.average(master_flat))
 
         # use header of first file and add some comments
-        header_out = images[0][1]
+        header_out = image[1]
         header_out['PROC'] = 'True'
         header_out['COMMENT'] = 'Processed %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
 
