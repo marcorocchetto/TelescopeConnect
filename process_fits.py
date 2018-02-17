@@ -36,9 +36,9 @@ if not options.json_filename:
 json_data = json.loads(open(options.json_filename).read())
 
 # read all files from list
-images = []
-for image_fname in json_data['input_fits']:
-    images.append(get_ImageData(image_fname))
+#images = []
+#for image_fname in json_data['input_fits']:
+#    images.append(get_ImageData(image_fname))
 
 # todo: check size of frame
 
@@ -48,7 +48,9 @@ output_jpg_thumb = []
 
 result = 'SUCCESS'
 
-for idx, image in enumerate(images):
+for idx, image_fname in enumerate(json_data['input_fits']):
+
+    image = get_ImageData(image_fname)
 
     # get output filenames for fits and jpg previews
     filename, file_extension = os.path.splitext(os.path.basename(json_data['input_fits'][idx]))
@@ -70,34 +72,34 @@ for idx, image in enumerate(images):
     try:
 
         # Add a Pedestal of 100 ADUs
-        images[idx][0][:, :] += 100
+        image[0][:, :] += 100
 
         # subtract MasterBias, if present
         if "master_bias" in json_data:
             master_bias = get_ImageData(json_data['master_bias'])[0]
-            images[idx][0][:, :] = images[idx][0] - master_bias
+            image[0][:, :] = image[0] - master_bias
 
         # subtract MasterDark, if present
         if "master_dark" in json_data:
             master_dark = get_ImageData(json_data['master_dark'])[0]
-            images[idx][0][:, :] = images[idx][0] - master_dark
-            exptime = images[idx][1]['EXPTIME']
+            image[0][:, :] = image[0] - master_dark
+            exptime = image[1]['EXPTIME']
             expfactor = exptime / 60.
-            images[idx][0][:, :] = images[idx][0] - master_dark * expfactor
+            image[0][:, :] = image[0] - master_dark * expfactor
 
-        images[idx][0][:, :][images[idx][0][:, :] < 0] = 0.
+        image[0][:, :][image[0][:, :] < 0] = 0.
 
         # divide by MasterFlat
         if "master_flat" in json_data:
             master_flat = get_ImageData(json_data['master_flat'])[0]
-            images[idx][0][:, :] = images[idx][0] / (master_flat / np.average(master_flat))
+            image[0][:, :] = image[0] / (master_flat / np.average(master_flat))
 
         # use header of first file and add some comments
         header_out = image[1]
         header_out['PROC'] = 'True'
         header_out['COMMENT'] = 'Processed %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
 
-        hdu = fits.PrimaryHDU(images[idx][0].astype(np.uint16), header=header_out)
+        hdu = fits.PrimaryHDU(image[0].astype(np.uint16), header=header_out)
         hdu.writeto(path_fits, clobber=True)
 
         # generate previews
