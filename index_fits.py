@@ -154,9 +154,6 @@ if 'FILTER' in header and imagetype != 'BIAS':
 else:
     filter = ''
 
-
-
-
 # ccd temperature
 ccdtemp = header['CCD-TEMP']
 
@@ -205,6 +202,7 @@ output = {
     'observer': observer,
     'exptime': exptime,
     'filter': filter,
+    'fwhm': 0,
     'width_px': width_px,
     'height_px': height_px,
     'ccdtemp': ccdtemp,
