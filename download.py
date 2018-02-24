@@ -46,8 +46,10 @@ if not options.json_filename:
 
 json_data = json.loads(open(options.json_filename).read())
 
-if not 'preprocess' in json_data:
+if not 'preprocess' in json_data or not json_data['preprocess']:
     json_data['preprocess'] = []
+if not 'stack_type' in json_data or not json_data['stack_type']:
+    json_data['stack_type'] = []
 
 random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
 
