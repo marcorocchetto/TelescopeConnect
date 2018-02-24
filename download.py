@@ -18,9 +18,10 @@ from time import strftime
 import time
 import os
 import zipfile, random, string
+from astropy.stats import sigma_clip
 import shutil
+import glob
 
-import library.general
 from library.general import *
 
 #loading parameter file parser
@@ -33,17 +34,16 @@ parser.add_argument('--json',
 
 options = parser.parse_args()
 
+
+
 if not options.json_filename:
     RaiseError('You need an inpunt JSON file')
 
 json_data = json.loads(open(options.json_filename).read())
 
-# read all files from list
-# images = []
-# for image_fname in json_data['input_fits']:
-#     images.append(get_ImageData(image_fname))
+if not 'preprocess' in json_data:
+    json_data['preprocess'] = []
 
-# TEMPORARY. THIS DOES NOT DO ANYTHING, JUST COMPRESS ALL FILES INTO SINGLE ZIP
 random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
 
 # create directory for files to be compressed
@@ -51,6 +51,23 @@ zip_directory = os.path.abspath(os.path.join(json_data['output_folder'], random_
 if not os.path.exists(zip_directory):
     os.makedirs(zip_directory)
 
+# create working directory
+working_directory = os.path.abspath(os.path.join(json_data['output_folder'], 'wdir'))
+if not os.path.exists(working_directory):
+    os.makedirs(working_directory)
+
+# create directory for copy of original files
+orig_directory = os.path.abspath(os.path.join(json_data['output_folder'], 'orig'))
+if not os.path.exists(orig_directory):
+    os.makedirs(orig_directory)
+
+# logging to text file, in zip folder
+log_filename = os.path.join(zip_directory, 'log.txt')
+sys.stdout = open(log_filename, "w")
+
+# preprocessing
+
+# first copy files to working directory
 for image_fname in json_data['input_fits']:
 
     # set filename
@@ -58,7 +75,7 @@ for image_fname in json_data['input_fits']:
     header = hdulist[0].header
 
     # ccd temperature
-    ccdtemp = header['CCD-TEMP']
+    ccdtemp = round(header['CCD-TEMP'])
 
     # Date and time of observation: keyword DATE-OBS
     dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
@@ -69,7 +86,7 @@ for image_fname in json_data['input_fits']:
     if imagetype == 'LIGHT':
         if 'OBJECT' in header:
             filename += '_' + header['OBJECT']
-        filename += header['FILTER']
+        filename += '_' + header['FILTER']
         filename += '_T'
         filename += str(ccdtemp)
     if imagetype == 'BIAS':
@@ -98,18 +115,158 @@ for image_fname in json_data['input_fits']:
     filename = filename.replace(' ', '_')
     filename_fits = filename + '.fits'
 
-    # copy file to archive directory
-    shutil.copy(image_fname, os.path.join(zip_directory, filename_fits))
+    # copy file to orig directory
+    shutil.copy(image_fname, os.path.join(orig_directory, filename_fits))
 
+
+
+# no align, no stack. Deliver original files
+if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preprocess']:
+    if not 'stack' in json_data['preprocess']:
+        # if you are not stacking but only alignining, then output will be aligned images
+        images = glob.glob(os.path.join(orig_directory, '*.fits'))
+        for image_fname in images:
+            if json_data['output_format'] == 'fits':
+               shutil.copy(image_fname, zip_directory)
+            elif json_data['output_format'] == 'tiff':
+                output_filename_tiff = '%s.tiff' % os.path.splitext(os.path.basename(image_fname))[0]
+                os.system("/usr/bin/convert '" + os.path.join(zip_directory, image_fname) + \
+                          "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_tiff) + "'")
+            elif json_data['output_format'] == 'jpg':
+                output_filename_jpg = '%s.jpg' % os.path.splitext(os.path.basename(image_fname))[0]
+                os.system("/usr/bin/convert '" + os.path.join(zip_directory, image_fname) + \
+                          "' -contrast-stretch 20% '" + os.path.join(zip_directory, output_filename_jpg) + "'")
+
+# align
+if 'align' in json_data['preprocess'] or 'stack' in json_data['preprocess']:
+
+    import alipy
+
+    aligned_directory = os.path.join(working_directory, 'aligned')
+    if not os.path.isdir(aligned_directory):
+        os.mkdir(aligned_directory)
+
+    # all images and reference image
+    images = glob.glob(os.path.join(orig_directory, '*.fits'))
+    ref_image = images[0]
+
+    # reference image
+    identifications = alipy.ident.run(ref_image, images, visu=False, stdout_file=log_filename)
+
+    for id in identifications:
+        if id.ok == True:
+            print("%20s : %20s, flux ratio %.2f" % (id.ukn.name, id.trans, id.medfluxratio))
+        else:
+            print("%20s : no transformation found !" % (id.ukn.name))
+
+    outputshape = alipy.align.shape(images[0])
+    for id in identifications:
+        if id.ok == True:
+            alipy.align.affineremap(id.ukn.filepath, id.trans, shape=outputshape, outdir=aligned_directory, makepng=False)
+
+    if not 'stack' in json_data['preprocess']:
+        # if you are not stacking but only alignining, then output will be aligned images
+        images_aligned = glob.glob(os.path.join(aligned_directory, '*.fits'))
+        for image_fname in images_aligned:
+            if json_data['output_format'] == 'fits':
+               shutil.copy(image_fname, zip_directory)
+
+            elif json_data['output_format'] == 'tiff':
+                output_filename_tiff = '%s.tiff' % os.path.splitext(os.path.basename(image_fname))[0]
+                os.system("/usr/bin/convert '" + os.path.join(zip_directory, image_fname) + \
+                          "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_tiff) + "'")
+            elif json_data['output_format'] == 'jpg':
+                output_filename_jpg = '%s.jpg' % os.path.splitext(os.path.basename(image_fname))[0]
+                os.system("/usr/bin/convert '" + os.path.join(zip_directory, image_fname) + \
+                          "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_jpg) + "'")
+
+
+# align and stack (images already aligned in step above)
+if 'stack' in json_data['preprocess']:
+
+    stack_directory = os.path.join(working_directory, 'stacked')
+    if not os.path.isdir(stack_directory):
+        os.mkdir(stack_directory)
+
+    images_aligned = glob.glob(os.path.join(aligned_directory, '*.fits'))
+
+    ref_image = get_ImageData(images_aligned[0])
+
+    filters = {}
+
+    # stacking method
+    stack_method = json_data['stack_type']
+
+    shape = np.shape(ref_image[0])
+
+    # sort images by filter
+    for image in images_aligned:
+        load_image = get_ImageData(image)
+        header = load_image[1]
+        filter = header['FILTER']
+        if not filter in filters:
+            filters[filter] = []
+        filters[filter].append(image)
+
+    # loop through each filter
+    for filter in filters:
+        nimages = len(filters[filter])
+        stack_array = np.zeros((shape[0], shape[1], nimages), dtype=np.uint16)
+
+        exp_total = 0
+
+        for image_idx, image_val in enumerate(filters[filter]):
+            load_image = get_ImageData(image_val)
+            exp_total += np.float(load_image[1]['EXPTIME'])
+            stack_array[:, :, image_idx] = load_image[0]
+
+        exp_total_round = round(exp_total / 60.)
+
+        stack_final = np.zeros((shape[0], shape[1]), dtype=np.uint16)
+
+        if stack_method == 'median':
+            stack_final[:, :] = np.median(stack_array, axis=2)
+        elif stack_method == 'mean':
+            stack_final[:, :] = np.average(stack_array, axis=2)
+        elif stack_method == 'sum':
+            stack_final[:, :] = np.sum(stack_array, axis=2)
+
+        output_filename = ref_image[1]['OBJECT'].replace(' ', '_')
+        output_filename += '_%s' % filter
+        output_filename += '_stack-%s_%imin' % (stack_method, exp_total_round)
+
+        output_filename_fits = '%s.fits' % output_filename
+        output_filename_tiff = '%s.tiff' % output_filename
+        output_filename_jpg = '%s.jpg' % output_filename
+
+        hdu = fits.PrimaryHDU(stack_final)
+        hdul = fits.HDUList([hdu])
+
+        if not os.path.isfile(os.path.join(stack_directory, output_filename_fits)):
+            hdul.writeto(os.path.join(stack_directory, output_filename_fits))
+
+    # convert to tiff or jpg if needed, save output to zip folder
+    if json_data['output_format'] == 'tiff':
+        os.system("/usr/bin/convert '" + os.path.join(stack_directory, output_filename_fits) + \
+                 "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_tiff) + "'")
+    elif json_data['output_format'] == 'jpeg' or json_data['output_format'] == 'jpg':
+        os.system("/usr/bin/convert '" + os.path.join(stack_directory, output_filename_fits) + \
+                  "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_jpg) + "'")
+    else:
+        shutil.copy(os.path.join(stack_directory, output_filename_fits),
+                    os.path.join(zip_directory, output_filename_fits))
+
+
+sys.stdout = sys.__stdout__
 
 output_filename_zip = 'TelescopeConnect_' + random_string + '.zip'
 output_filename = 'TelescopeConnect_' + random_string
 
 shutil.make_archive(os.path.join(json_data['output_folder'], output_filename), 'zip', zip_directory)
-
 shutil.rmtree(zip_directory)
 
 print(json.dumps({'result': 'SUCCESS',
                   'output_file': os.path.abspath(os.path.join(json_data['output_folder'], output_filename_zip))},
                  separators=(',', ':'), indent=4))
+
 sys.exit()

@@ -50,7 +50,8 @@ result = 'SUCCESS'
 
 for idx, image_fname in enumerate(json_data['input_fits']):
 
-    image = get_ImageData(image_fname)
+
+    image = get_ImageData(os.path.abspath(image_fname))
 
     # get output filenames for fits and jpg previews
     filename, file_extension = os.path.splitext(os.path.basename(json_data['input_fits'][idx]))
@@ -65,10 +66,6 @@ for idx, image_fname in enumerate(json_data['input_fits']):
     path_jpg_thumb = os.path.abspath(os.path.join(json_data['output_folder'], filename_jpg_thumb))
 
 
-    # check if output fits file already exists
-    # if os.path.isfile(filename_fits):
-    #     RaiseError('File %s already exists' % filename_fits)
-    #
     try:
 
         # Add a Pedestal of 100 ADUs
@@ -100,24 +97,24 @@ for idx, image_fname in enumerate(json_data['input_fits']):
         header_out['COMMENT'] = 'Processed %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
 
         hdu = fits.PrimaryHDU(image[0].astype(np.uint16), header=header_out)
-        hdu.writeto(path_fits, clobber=True)
+        hdu.writeto(path_fits, overwrite=True)
 
         # generate previews
         os.system("/usr/bin/convert '" + path_fits + "' -contrast-stretch 3% -resize 1024x '" + path_jpg_large + "'")
         os.system("/usr/bin/convert '" + path_fits + "' -contrast-stretch 3% -resize 100x '" + path_jpg_thumb + "'")
 
-    except:
-
+    except Exception as e:
         result = 'WARNING'
         path_fits = ''
         path_jpg_large = ''
         path_jpg_thumb = ''
-        warning_description = 'One or more images have not been processed'
+        warning_description = 'One or more images have not been processed. Error: %s' % str(e)
 
     # append filename to list of fits images
     output_fits.append(path_fits)
     output_jpg_large.append(path_jpg_large)
     output_jpg_thumb.append(path_jpg_thumb)
+
 
 output = {
     'result': result,

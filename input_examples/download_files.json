@@ -1,11 +1,15 @@
 {
     "input_fits": [
-      "/home/telescope/TelescopeConnect/data/2016-09-08/raw/fits/2016-09-08T20-24-53-M31-2008-12a-Rc.fits",
-      "/home/telescope/TelescopeConnect/data/2016-09-08/raw/fits/2016-09-08T20-28-07-M31-2008-12a-Rc.fits",
-      "/home/telescope/TelescopeConnect/data/2016-09-08/raw/fits/2016-09-08T22-03-41-M31-2008-12a-Rc.fits"
+        "output_data/2016-09-08T20-24-53-M31-2008-12a-Rc_processed.fits",
+        "output_data/2016-09-08T20-28-07-M31-2008-12a-Rc_processed.fits",
+        "output_data/2016-09-08T22-03-41-M31-2008-12a-Rc_processed.fits",
+        "output_data/2016-09-08T22-07-01-M31-2008-12a-Rc_processed.fits",
+        "output_data/2016-09-08T22-10-21-M31-2008-12a-Rc_processed.fits",
+        "output_data/2016-09-08T22-37-03-M31-2008-12a-Rc_processed.fits",
+        "output_data/2016-09-08T22-40-23-M31-2008-12a-Rc_processed.fits"
     ],
-    "preprocess": ["align", "stack"],
-    "stack_type": "mode",
-    "output_format": "tiff",
-    "output_folder":"/home/telescope/TelescopeConnect/output_data"
+    "preprocess": ["stack"],
+    "stack_type": "sum",
+    "output_format": "fits",
+    "output_folder":"output_data"
 }

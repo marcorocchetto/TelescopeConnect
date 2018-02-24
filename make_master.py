@@ -148,9 +148,8 @@ if json_data['make_type'].upper() == 'BIAS'\
 
     hdu = fits.PrimaryHDU(master_image.astype(np.uint16), header=header_out)
 
-    hdu.writeto(path_fits, clobber=True)
+    hdu.writeto(path_fits, overwrite=True)
 
-    os.system("/usr/bin/convert '" + path_fits + "' -contrast-stretch 3%  -resize 1024x '" + path_jpg_large + "'")
     os.system("/usr/bin/convert '" + path_fits + "' -contrast-stretch 3% -resize 100x '" + path_jpg_thumb + "'")
 
     output = {
