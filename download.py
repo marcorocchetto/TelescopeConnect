@@ -27,7 +27,6 @@ import psutil
 
 process = psutil.Process(os.getpid())
 
-print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
 from library.general import *
 
