@@ -68,8 +68,8 @@ for idx, image_fname in enumerate(json_data['input_fits']):
 
     try:
 
-        # Add a Pedestal of 100 ADUs
-        image[0][:, :] += 100
+        # Add a Pedestal of 300 ADUs
+        image[0][:, :] += 300
 
         # subtract MasterBias, if present
         if "master_bias" in json_data:
