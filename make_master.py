@@ -48,11 +48,36 @@ images = []
 for image_path in json_data['input_fits']:
     images.append(get_ImageData(image_path))
 
-# todo: check size of frame
+# read all darks from list if type is FLATS
+if json_data['make_type'].upper() == 'FLAT':
+    darks = []
+    for image_path in json_data['master_dark']:
+        darks.append(get_ImageData(image_path))
+
 
 if json_data['make_type'].upper() == 'BIAS'\
         or json_data['make_type'].upper() == 'DARK'\
         or json_data['make_type'].upper() == 'FLAT':
+
+    if json_data['make_type'].upper() == 'DARK':
+
+        # check that we have uniform exposure times
+        for image_idx, image_val in enumerate(images):
+            if image_idx == 0:
+                continue
+            if image_val[1]['EXPTIME'] != images[0][1]['EXPTIME']:
+                RaiseError('Dark frames do not have the same exposure time, cannot continue')
+
+    if json_data['make_type'].upper() == 'FLAT':
+
+        # exp times of flats and darks
+        exptimes_flats = [image[1]['EXPTIME'] for image in images]
+        exptimes_darks = [image[1]['EXPTIME'] for image in darks]
+
+        darks_exp = {}
+        for image in darks:
+            darks_exp[image[1]['EXPTIME']] = image
+
 
     # load header of first image, will be used as header for output file
     header_out = images[0][1]
@@ -60,14 +85,16 @@ if json_data['make_type'].upper() == 'BIAS'\
     # create filename
     dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header_out['DATE-OBS'])
     filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
+
     if json_data['make_type'].upper() == 'BIAS':
             filename += '_MasterBias'
+
     if json_data['make_type'].upper() == 'DARK':
             filename += '_T%sC' % json_data['ccd_temp_avg']
-            filename += '_60s'
+            filename += '_%is' % int(round(images[0][1]['EXPTIME']))
             filename += '_MasterDark'
+
     if json_data['make_type'].upper() == 'FLAT':
-            filename += '_T%sC' % json_data['ccd_temp_avg']
             filename += '_%s' % json_data['filter']
             filename += '_MasterFlat'
 
@@ -94,30 +121,35 @@ if json_data['make_type'].upper() == 'BIAS'\
 
             # remove bias
             images[idx][0][:,:] = images[idx][0]-master_bias
-            # todo after bias subtraction we get darks with negative values...
-            images[idx][0][:, :][images[idx][0][:,:]<0] = 0.
-
 
             # normalise to exptime of 60 sec
-            exptime = images[idx][1]['EXPTIME']
-            expfactor = (60./exptime)
-            images[idx][0][:, :] = images[idx][0]*expfactor
+            # exptime = images[idx][1]['EXPTIME']
+            # expfactor = (60./exptime)
+            # images[idx][0][:, :] = images[idx][0]*expfactor
 
     if json_data['make_type'].upper() == 'FLAT':
+
         # if flat, apply master bias and master dark to all raw flats
         master_bias = get_ImageData(json_data['master_bias'])[0]
-        master_dark = get_ImageData(json_data['master_dark'])[0]
+
         for idx, image in enumerate(images):
             #remove bias
             images[idx][0][:, :] = images[idx][0] - master_bias
 
+
+            print(images[idx][1]['EXPTIME'])
+            print(darks_exp.keys())
+            if images[idx][1]['EXPTIME'] in darks_exp.keys():
+                master_dark = darks_exp[images[idx][1]['EXPTIME']][0]
+            else:
+                # here we should scale
+                pass
+
             # scale flat to 60sec exp; subtract dark;
-            exptime = images[idx][1]['EXPTIME']
-
-            images[idx][0][:, :] = (60./exptime)*images[idx][0][:, :] - master_dark
-
+            images[idx][0][:, :] = images[idx][0][:, :] - master_dark
             images[idx][0][:, :][images[idx][0][:, :] < 0] = 0.
 
+            # normalise
             images[idx][0][:, :] = images[idx][0][:, :]/np.average(images[idx][0][:, :])
 
     # combine frames to create Master frame
@@ -143,8 +175,8 @@ if json_data['make_type'].upper() == 'BIAS'\
     # use header of first file and add some comments
     header_out['NCOMBINE'] = len(images)
     header_out['COMMENT'] = 'Processed with CORTEX %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
-    if json_data['make_type'].upper() == 'DARK' or json_data['make_type'].upper() == 'FLAT':
-        header_out['EXPTIME'] = 60. # exp time is 60 if Master Dark frame or Master Flat
+    # if json_data['make_type'].upper() == 'DARK' or json_data['make_type'].upper() == 'FLAT':
+    #     header_out['EXPTIME'] = 60. # exp time is 60 if Master Dark frame or Master Flat
 
     hdu = fits.PrimaryHDU(master_image.astype(np.uint16), header=header_out)
 
