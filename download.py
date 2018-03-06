@@ -84,6 +84,9 @@ for image_fname in json_data['input_fits']:
     # ccd temperature
     ccdtemp = round(header['CCD-TEMP'])
 
+    # ccd temperature
+    exptime = round(header['EXPTIME'])
+
     # Date and time of observation: keyword DATE-OBS
     dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
     filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
@@ -96,6 +99,9 @@ for image_fname in json_data['input_fits']:
         filename += '_' + header['FILTER']
         filename += '_T'
         filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
     if imagetype == 'BIAS':
         filename += '_Bias'
     if imagetype == 'MASTER BIAS':
@@ -104,20 +110,32 @@ for image_fname in json_data['input_fits']:
         filename += '_Dark'
         filename += '_T'
         filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
     if imagetype == 'MASTER DARK':
         filename += '_MasterDark'
         filename += '_T'
         filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
     if imagetype == 'FLAT':
         filename += '_Flat_'
         filename += header['FILTER']
         filename += '_T'
         filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
     if imagetype == 'MASTER FLAT':
         filename += '_MasterFlat_'
         filename += header['FILTER']
         filename += '_T'
         filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
 
     filename = filename.replace(' ', '_')
     filename_fits = filename + '.fits'
