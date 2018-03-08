@@ -1,0 +1,12 @@
+{
+    "combine_method":"average",
+    "input_fits":[
+		"data/SampleData/Dark/2018-03-05T14-22-41_Dark_T-25_5s.fits",
+		"data/SampleData/Dark/2018-03-05T14-23-15_Dark_T-25_5s.fits",
+		"data/SampleData/Dark/2018-03-05T14-23-50_Dark_T-25_5s.fits"
+		],
+    "master_bias": "output_data/SampleReduction/2018-03-05T16-24-53_MasterBias.fits",
+    "make_type":"Dark",
+    "ccd_temp_avg": -25,
+    "output_folder":"output_data/SampleReduction"
+}

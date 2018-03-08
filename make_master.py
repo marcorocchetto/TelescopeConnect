@@ -137,8 +137,6 @@ if json_data['make_type'].upper() == 'BIAS'\
             images[idx][0][:, :] = images[idx][0] - master_bias
 
 
-            print(images[idx][1]['EXPTIME'])
-            print(darks_exp.keys())
             if images[idx][1]['EXPTIME'] in darks_exp.keys():
                 master_dark = darks_exp[images[idx][1]['EXPTIME']][0]
             else:

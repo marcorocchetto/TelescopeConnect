@@ -1,0 +1,10 @@
+{
+    "combine_method":"average",
+    "input_fits":[
+		"data/SampleData/Bias/2018-03-05T16-24-53_Bias.fits",
+		"data/SampleData/Bias/2018-03-05T16-25-23_Bias.fits",
+		"data/SampleData/Bias/2018-03-05T16-25-53_Bias.fits"
+    ],
+    "make_type":"Bias",
+    "output_folder":"output_data/SampleReduction"
+}
