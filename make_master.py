@@ -146,7 +146,7 @@ if json_data['make_type'].upper() == 'BIAS'\
                 # todo we should actually take master dark with closesest exptime
                 dark_exptime = next (iter (darks_exp.values()))
                 image_exptime = images[idx][1]['EXPTIME']
-                master_dark_unscaled = darks_exp[dark_exptime]
+                master_dark_unscaled = darks_exp[dark_exptime][0]
                 master_dark = master_dark_unscaled * (image_exptime/dark_exptime)
 
             # scale flat to 60sec exp; subtract dark;
