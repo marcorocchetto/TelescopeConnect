@@ -96,7 +96,7 @@ for image_fname in json_data['input_fits']:
     if imagetype == 'LIGHT':
         if 'OBJECT' in header:
             filename += '_' + header['OBJECT']
-        filename += '_' + header['FILTER']
+        filename += '_' + header['FILTER'].replace("'", "prime")
         filename += '_T'
         filename += str(ccdtemp)
         filename += '_'
@@ -122,7 +122,7 @@ for image_fname in json_data['input_fits']:
         filename += 's'
     if imagetype == 'FLAT':
         filename += '_Flat_'
-        filename += header['FILTER']
+        filename += header['FILTER'].replace("'", "prime")
         filename += '_T'
         filename += str(ccdtemp)
         filename += '_'
@@ -130,7 +130,7 @@ for image_fname in json_data['input_fits']:
         filename += 's'
     if imagetype == 'MASTER FLAT':
         filename += '_MasterFlat_'
-        filename += header['FILTER']
+        filename += header['FILTER'].replace("'", "prime")
         filename += '_T'
         filename += str(ccdtemp)
         filename += '_'

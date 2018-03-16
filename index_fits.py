@@ -166,14 +166,14 @@ filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
 if imagetype == 'LIGHT':
     if 'OBJECT' in header:
         filename += '-' + header['OBJECT']
-    filename += header['FILTER']
+    filename += '-' + header['FILTER'].replace("'", "prime")
 if imagetype == 'BIAS':
     filename += '-Bias'
 if imagetype == 'DARK':
     filename += '-Dark'
 if imagetype == 'FLAT':
     filename += '-Flat-'
-    filename += header['FILTER']
+    filename += header['FILTER'].replace("'", "prime")
 filename = filename.replace(' ', '_')
 
 filename_fits = filename + '.fits'
