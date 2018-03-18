@@ -94,7 +94,7 @@ if json_data['make_type'].upper() == 'BIAS'\
             filename += '_MasterDark'
 
     if json_data['make_type'].upper() == 'FLAT':
-            filename += '_%s' % json_data['filter']
+            filename += '_%s' % json_data['filter'].replace("'", "prime")
             filename += '_MasterFlat'
 
     filename = filename.replace(' ', '-')

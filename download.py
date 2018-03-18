@@ -266,10 +266,12 @@ if 'stack' in json_data['preprocess']:
 
         if stack_method == 'median':
             stack_final[:, :] = np.median(stack_array, axis=2)
-        elif stack_method == 'mean':
-            stack_final[:, :] = np.average(stack_array, axis=2)
+
+        elif stack_method == 'mean' or stack_method == 'average':
+            stack_final[:, :] = np.mean(stack_array, axis=2)
         elif stack_method == 'sum':
             stack_final[:, :] = np.sum(stack_array, axis=2)
+
         print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
         output_filename = ref_image[1]['OBJECT'].replace(' ', '_')
