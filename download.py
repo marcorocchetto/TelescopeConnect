@@ -71,9 +71,9 @@ if not os.path.exists(orig_directory):
 # logging to text file, in zip folder
 log_filename = os.path.join(zip_directory, 'log.txt')
 sys.stdout = open(log_filename, "w")
-
-stats_filename = os.path.join(zip_directory, 'stats.txt')
-stats_file = open(stats_filename, 'w')
+#
+# stats_filename = os.path.join(zip_directory, 'stats.txt')
+# stats_file = open(stats_filename, 'w')
 
 # preprocessing
 #
@@ -96,10 +96,10 @@ if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preproce
             hdulist = fits.open(image_fname)
             header = hdulist[0].header
 
-            stats_file.write(
-                '%s %.7f %.2f %s %.1f %.2f %.1f' % (header['DATE-OBS'],  header['JD-OBS'],
-                                                    header['FWHM'], header['FILTER'], header['CCD-TEMP'],
-                                                    header['AIRMASS'], header['ALTITUDE']))
+            # stats_file.write(
+            #     '%s %.7f %.2f %s %.1f %.2f %.1f' % (header['DATE-OBS'],  header['JD-OBS'],
+            #                                         header['FWHM'], header['FILTER'], header['CCD-TEMP'],
+            #                                         header['AIRMASS'], header['ALTITUDE']))
 
             # ccd temperature
             ccdtemp = round(header['CCD-TEMP'])
