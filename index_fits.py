@@ -57,12 +57,12 @@ if not json_data['fits_fname']:
     RaiseError('File name not specified')
 
 if not json_data['time_zone']:
-    local = 'Etc/GMT'
+    local = pytz.timezone('Etc/GMT')
 else:
     try:
         local = pytz.timezone(json_data['time_zone'])
     except pytz.exceptions.UnknownTimeZoneError:
-        local = 'Etc/GMT'
+        local = pytz.timezone('Etc/GMT')
 
 # check file exists
 if not os.path.isfile(json_data['fits_fname']):
