@@ -133,8 +133,9 @@ for imgtype in ['Flat', 'Dark', 'Bias', 'Master', 'Raw']:
 
             hdulist = fits.open(image_fname)
             header = hdulist[0].header
-            filename = os.path.splitext(os.path.basename(image_fname))[0]
-            filename = filename.replace(' ', '_')
+
+            filename = get_FileName(header)
+
             output_filename_fits = filename + '.fits'
             output_filename_tiff = filename + '.tiff'
             output_filename_jpg = filename + '.jpg'
@@ -163,8 +164,9 @@ if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preproce
 
             hdulist = fits.open(image_fname)
             header = hdulist[0].header
-            filename = os.path.splitext(os.path.basename(image_fname))[0]
-            filename = filename.replace(' ', '_')
+
+            filename = get_FileName(header)
+
             output_filename_fits = filename + '.fits'
             output_filename_tiff = filename + '.tiff'
             output_filename_jpg = filename + '.jpg'

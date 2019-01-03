@@ -19,6 +19,61 @@ def RaiseError(error_description):
     print(json.dumps({'result': 'ERROR', 'error_description': error_description}, separators=(',',':'), indent=4))
     sys.exit()
 
+def get_FileName(header):
+
+    dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
+    filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
+    ccdtemp = round(header['CCD-TEMP'])
+    exptime = round(header['EXPTIME'])
+    imagetype = get_ImageType(header['IMAGETYP'])
+    if imagetype == 'LIGHT':
+        if 'OBJECT' in header:
+            filename += '_' + header['OBJECT']
+        filename += '_' + header['FILTER'].replace("'", "prime")
+        filename += '_T'
+        filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
+    elif imagetype == 'BIAS' and not 'NCOMBINE' in header:
+        filename += '_Bias'
+    elif imagetype == 'BIAS' and 'NCOMBINE' in header:
+        filename += '_MasterBias'
+    elif imagetype == 'DARK' and not 'NCOMBINE' in header:
+        filename += '_Dark'
+        filename += '_T'
+        filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
+    elif imagetype == 'DARK' and 'NCOMBINE' in header:
+        filename += '_MasterDark'
+        filename += '_T'
+        filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
+    elif imagetype == 'FLAT' and not 'NCOMBINE' in header:
+        filename += '_Flat_'
+        filename += header['FILTER'].replace("'", "prime")
+        filename += '_T'
+        filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
+    elif imagetype == 'FLAT' and 'NCOMBINE' in header:
+        filename += '_MasterFlat_'
+        filename += header['FILTER'].replace("'", "prime")
+        filename += '_T'
+        filename += str(ccdtemp)
+        filename += '_'
+        filename += str(exptime)
+        filename += 's'
+    filename = filename.replace(' ', '_')
+
+    return filename
+
+
 def get_ImageType(imagetyp_header):
 
     flat_values = ['FLAT', 'FLAT FRAME', 'FLAT FIELD']
