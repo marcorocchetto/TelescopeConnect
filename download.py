@@ -70,8 +70,9 @@ if not os.path.exists(orig_directory):
 
 # logging to text file, in zip folder
 log_filename = os.path.join(zip_directory, 'log.txt')
-sys.stdout = open(log_filename, "w")
-#
+#sys.stdout = open(log_filename, "w")
+
+
 # stats_filename = os.path.join(zip_directory, 'stats.txt')
 # stats_file = open(stats_filename, 'w')
 
@@ -81,237 +82,281 @@ sys.stdout = open(log_filename, "w")
 
 print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
-# no align, no stack. Deliver original files
+# sort all files
+all_images = []
+if 'input_fits' in json_data:
+    all_images += json_data['input_fits']
+if 'input_calib' in json_data:
+    all_images += json_data['input_calib']
 
+all_images_dict = {
+    'Flat': [],
+    'Dark': [],
+    'Bias': [],
+    'Master': [],
+    'Processed': [],
+    'Raw': []
+}
+for image_fname in all_images:
 
-if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preprocess']:
-    if not 'stack' in json_data['preprocess']:
-        # if you are not stacking but only alignining, then output will be aligned images
-        images = glob.glob(os.path.join(orig_directory, '*.fits'))
+    # get header
+    hdulist = fits.open(image_fname)
+    header = hdulist[0].header
 
-        # first copy files to working directory
-        for image_fname in json_data['input_fits']:
+    # determine Image type from header IMAGETYP
+    imagetype = get_ImageType(header['IMAGETYP'])
+    if imagetype == 'LIGHT':
+        if 'PROC' in header:
+            if header['PROC']:
+                all_images_dict['Processed'].append(image_fname)
+            else:
+                all_images_dict['Raw'].append(image_fname)
+        else:
+            all_images_dict['Raw'].append(image_fname)
+    elif 'NCOMBINE' in header: # ncombine is only inserted for Master frames
+        all_images_dict['Master'].append(image_fname)
+    elif imagetype == 'BIAS':
+        all_images_dict['Bias'].append(image_fname)
+    elif imagetype == 'DARK':
+        all_images_dict['Dark'].append(image_fname)
+    elif imagetype == 'FLAT':
+        all_images_dict['Flat'].append(image_fname)
 
-            # set filename
+# if we specify Master or Raw calibs, Raw frames, then we need to deliver them
+for imgtype in ['Flat', 'Dark', 'Bias', 'Master', 'Raw']:
+
+    if len(all_images_dict[imgtype]) > 0:
+
+        os.makedirs(os.path.join(zip_directory, imgtype))
+
+        for image_fname in all_images_dict[imgtype]:
+
             hdulist = fits.open(image_fname)
             header = hdulist[0].header
-
-            # stats_file.write(
-            #     '%s %.7f %.2f %s %.1f %.2f %.1f' % (header['DATE-OBS'],  header['JD-OBS'],
-            #                                         header['FWHM'], header['FILTER'], header['CCD-TEMP'],
-            #                                         header['AIRMASS'], header['ALTITUDE']))
-
-            # ccd temperature
-            ccdtemp = round(header['CCD-TEMP'])
-
-            # ccd temperature
-            exptime = round(header['EXPTIME'])
-
-            # Date and time of observation: keyword DATE-OBS
-            dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
-            filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
-
-            # determine Image type from header IMAGETYP
-            imagetype = get_ImageType(header['IMAGETYP'])
-            if imagetype == 'LIGHT':
-                if 'OBJECT' in header:
-                    filename += '_' + header['OBJECT']
-                filename += '_' + header['FILTER'].replace("'", "prime")
-                filename += '_T'
-                filename += str(ccdtemp)
-                filename += '_'
-                filename += str(exptime)
-                filename += 's'
-            if imagetype == 'BIAS':
-                filename += '_Bias'
-            if imagetype == 'MASTER BIAS':
-                filename += '_MasterBias'
-            if imagetype == 'DARK':
-                filename += '_Dark'
-                filename += '_T'
-                filename += str(ccdtemp)
-                filename += '_'
-                filename += str(exptime)
-                filename += 's'
-            if imagetype == 'MASTER DARK':
-                filename += '_MasterDark'
-                filename += '_T'
-                filename += str(ccdtemp)
-                filename += '_'
-                filename += str(exptime)
-                filename += 's'
-            if imagetype == 'FLAT':
-                filename += '_Flat_'
-                filename += header['FILTER'].replace("'", "prime")
-                filename += '_T'
-                filename += str(ccdtemp)
-                filename += '_'
-                filename += str(exptime)
-                filename += 's'
-            if imagetype == 'MASTER FLAT':
-                filename += '_MasterFlat_'
-                filename += header['FILTER'].replace("'", "prime")
-                filename += '_T'
-                filename += str(ccdtemp)
-                filename += '_'
-                filename += str(exptime)
-                filename += 's'
-
+            filename = os.path.splitext(os.path.basename(image_fname))[0]
             filename = filename.replace(' ', '_')
             output_filename_fits = filename + '.fits'
             output_filename_tiff = filename + '.tiff'
             output_filename_jpg = filename + '.jpg'
 
-
             if json_data['output_format'] == 'fits':
-                shutil.copy(image_fname, os.path.join(zip_directory, output_filename_fits))
+                shutil.copy(image_fname, os.path.join(zip_directory, imgtype, output_filename_fits))
             elif json_data['output_format'] == 'tiff':
                 os.system("/usr/bin/convert '" + image_fname + \
-                          "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_tiff) + "'")
+                          "' -contrast-stretch 50% '" + os.path.join(zip_directory, imgtype, output_filename_tiff) + "'")
             elif json_data['output_format'] == 'jpg':
                 os.system("/usr/bin/convert '" + image_fname + \
-                          "' -contrast-stretch 20% '" + os.path.join(zip_directory, output_filename_jpg) + "'")
+                          "' -contrast-stretch 20% '" + os.path.join(zip_directory, imgtype, output_filename_jpg) + "'")
 
-            print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+
+# no align, no stack. Deliver original Processed files if present
+if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preprocess']:
+
+    if len(all_images_dict['Processed']) > 0:
+
+        imgtype = 'Processed'
+
+        os.makedirs(os.path.join(zip_directory, imgtype))
+
+        for image_fname in all_images_dict[imgtype]:
+
+            hdulist = fits.open(image_fname)
+            header = hdulist[0].header
+            filename = os.path.splitext(os.path.basename(image_fname))[0]
+            filename = filename.replace(' ', '_')
+            output_filename_fits = filename + '.fits'
+            output_filename_tiff = filename + '.tiff'
+            output_filename_jpg = filename + '.jpg'
+
+            if json_data['output_format'] == 'fits':
+                shutil.copy(image_fname, os.path.join(zip_directory, imgtype, output_filename_fits))
+            elif json_data['output_format'] == 'tiff':
+                os.system("/usr/bin/convert '" + image_fname + \
+                          "' -contrast-stretch 50% '" + os.path.join(zip_directory, imgtype, output_filename_tiff) + "'")
+            elif json_data['output_format'] == 'jpg':
+                os.system("/usr/bin/convert '" + image_fname + \
+                          "' -contrast-stretch 20% '" + os.path.join(zip_directory, imgtype, output_filename_jpg) + "'")
+
+    print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
 
 # align
+aligned_success = False
 if 'align' in json_data['preprocess'] or 'stack' in json_data['preprocess']:
-    print("Align")
 
-    import alipy
+    if not len(all_images_dict['Processed']) > 1:
 
-    aligned_directory = os.path.join(working_directory, 'aligned')
-    if not os.path.isdir(aligned_directory):
-        os.mkdir(aligned_directory)
+        # cannot align images if we have less than 1 processed image
+        exit()
 
-    # all images and reference image
-    images = json_data['input_fits']
-    ref_image = json_data['input_fits'][0]
+    else:
 
-    # reference image
-    identifications = alipy.ident.run(ref_image, images, visu=False, stdout_file=log_filename)
+        print("Align")
 
-    for id in identifications:
-        if id.ok == True:
-            print("%20s : %20s, flux ratio %.2f" % (id.ukn.name, id.trans, id.medfluxratio))
-        else:
-            print("%20s : no transformation found !" % (id.ukn.name))
-    print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+        import alipy
 
-    outputshape = alipy.align.shape(images[0])
-    for id in identifications:
-        if id.ok == True:
-            alipy.align.affineremap(id.ukn.filepath, id.trans, shape=outputshape, outdir=aligned_directory, makepng=False)
-    print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+        aligned_directory = os.path.join(working_directory, 'aligned')
+        if not os.path.isdir(aligned_directory):
+            os.mkdir(aligned_directory)
 
-    print("Prepare for copy")
+        # all images and reference image
+        images = all_images_dict['Processed']
+        ref_image = images[0] # ref image is first one
 
-    if not 'stack' in json_data['preprocess']:
-        # if you are not stacking but only alignining, then output will be aligned images
-        images_aligned = glob.glob(os.path.join(aligned_directory, '*.fits'))
-        for image_fname in images_aligned:
-            if json_data['output_format'] == 'fits':
-               shutil.copy(image_fname, zip_directory)
+        # reference image
+        identifications = alipy.ident.run(ref_image, images, visu=False, stdout_file=log_filename)
 
-            elif json_data['output_format'] == 'tiff':
-                output_filename_tiff = '%s.tiff' % os.path.splitext(os.path.basename(image_fname))[0]
-                os.system("/usr/bin/convert '" + os.path.join(zip_directory, image_fname) + \
-                          "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_tiff) + "'")
-            elif json_data['output_format'] == 'jpg':
-                output_filename_jpg = '%s.jpg' % os.path.splitext(os.path.basename(image_fname))[0]
-                os.system("/usr/bin/convert '" + os.path.join(zip_directory, image_fname) + \
-                          "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_jpg) + "'")
+        for id in identifications:
+            if id.ok == True:
+                print("%20s : %20s, flux ratio %.2f" % (id.ukn.name, id.trans, id.medfluxratio))
+            else:
+                print("%20s : no transformation found !" % (id.ukn.name))
+        print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
-    print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+        outputshape = alipy.align.shape(images[0])
+        for id in identifications:
+            if id.ok == True:
+                alipy.align.affineremap(id.ukn.filepath, id.trans, shape=outputshape, outdir=aligned_directory, makepng=False)
+        print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+
+        print("Prepare for copy")
+
+        if not 'stack' in json_data['preprocess']:
+
+            # if you are not stacking but only alignining, then output will be aligned images
+            images_aligned = glob.glob(os.path.join(aligned_directory, '*.fits'))
+
+            os.makedirs(os.path.join(zip_directory, 'Aligned'))
+
+            for image_fname in images_aligned:
+                if json_data['output_format'] == 'fits':
+                   shutil.copy(image_fname, os.path.join(zip_directory, 'Aligned'))
+
+                elif json_data['output_format'] == 'tiff':
+                    output_filename_tiff = '%s.tiff' % os.path.splitext(os.path.basename(image_fname))[0]
+
+                    os.system("/usr/bin/convert '" + image_fname + \
+                              "' -contrast-stretch 50% '" + os.path.join(zip_directory, 'Aligned', output_filename_tiff) + "'")
+
+                elif json_data['output_format'] == 'jpg':
+                    output_filename_jpg = '%s.jpg' % os.path.splitext(os.path.basename(image_fname))[0]
+                    os.system("/usr/bin/convert '" + image_fname + \
+                              "' -contrast-stretch 50% '" + os.path.join(zip_directory, 'Aligned', output_filename_jpg) + "'")
+
+        aligned_success = True
+        print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+
+
 
 # align and stack (images already aligned in step above)
 if 'stack' in json_data['preprocess']:
 
-    print("Stack")
 
-    stack_directory = os.path.join(working_directory, 'stacked')
-    if not os.path.isdir(stack_directory):
-        os.mkdir(stack_directory)
+    if not len(all_images_dict['Processed']) > 1:
 
-    images_aligned = glob.glob(os.path.join(aligned_directory, '*.fits'))
+        # cannot stack images if we have less than 1 processed image
+        exit()
 
-    ref_image = get_ImageData(images_aligned[0])
+    elif not aligned_success:
+        # cannot stack images if aligned failed
+        exit()
+    else:
 
-    filters = {}
+        print("Stack")
 
-    # stacking method
-    stack_method = json_data['stack_type']
+        stack_directory = os.path.join(working_directory, 'stacked')
+        if not os.path.isdir(stack_directory):
+            os.mkdir(stack_directory)
 
-    shape = np.shape(ref_image[0])
+        images_aligned = glob.glob(os.path.join(aligned_directory, '*.fits'))
 
-    # sort images by filter
-    for image in images_aligned:
-        load_image = get_ImageData(image)
-        header = load_image[1]
-        filter = header['FILTER']
-        if not filter in filters:
-            filters[filter] = []
-        filters[filter].append(image)
-    print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+        ref_image = get_ImageData(images_aligned[0])
 
+        filters = {}
 
-    # loop through each filter
-    for filter in filters:
+        # stacking method
+        stack_method = json_data['stack_type']
 
-        print("Stack filter %s" % filter)
+        shape = np.shape(ref_image[0])
 
-        nimages = len(filters[filter])
-        stack_array = np.zeros((shape[0], shape[1], nimages), dtype=np.uint16)
-
-        exp_total = 0
-
-        for image_idx, image_val in enumerate(filters[filter]):
-            load_image = get_ImageData(image_val)
-            exp_total += np.float(load_image[1]['EXPTIME'])
-            stack_array[:, :, image_idx] = load_image[0]
-
-        exp_total_round = round(exp_total / 60.)
+        # sort images by filter
+        for image in images_aligned:
+            load_image = get_ImageData(image)
+            header = load_image[1]
+            filter = header['FILTER']
+            if not filter in filters:
+                filters[filter] = []
+            filters[filter].append(image)
         print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
-        stack_final = np.zeros((shape[0], shape[1]), dtype=np.uint16)
+        # loop through each filter
+        for filter in filters:
 
-        if stack_method == 'median':
-            stack_final[:, :] = np.median(stack_array, axis=2)
+            print("Stack filter %s" % filter)
 
-        elif stack_method == 'mean' or stack_method == 'average':
-            stack_final[:, :] = np.mean(stack_array, axis=2)
-        elif stack_method == 'sum':
-            stack_final[:, :] = np.sum(stack_array, axis=2)
+            # get header of first image
+            header_out = get_ImageData(filters[filter][0])[1]
 
-        print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+            nimages = len(filters[filter])
+            stack_array = np.zeros((shape[0], shape[1], nimages), dtype=np.uint16)
 
-        output_filename = ref_image[1]['OBJECT'].replace(' ', '_')
-        output_filename += '_%s' % filter
-        output_filename += '_stack-%s_%imin' % (stack_method, exp_total_round)
-        print(output_filename)
+            exp_total = 0
 
-        output_filename_fits = '%s.fits' % output_filename
-        output_filename_tiff = '%s.tiff' % output_filename
-        output_filename_jpg = '%s.jpg' % output_filename
+            for image_idx, image_val in enumerate(filters[filter]):
+                load_image = get_ImageData(image_val)
+                exp_total += np.float(load_image[1]['EXPTIME'])
+                stack_array[:, :, image_idx] = load_image[0]
 
-        hdu = fits.PrimaryHDU(stack_final)
-        hdul = fits.HDUList([hdu])
-        print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+            exp_total_round = round(exp_total / 60.)
+            print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
-        if not os.path.isfile(os.path.join(stack_directory, output_filename_fits)):
-            hdul.writeto(os.path.join(stack_directory, output_filename_fits))
+            stack_final = np.zeros((shape[0], shape[1]), dtype=np.uint16)
 
-        # convert to tiff or jpg if needed, save output to zip folder
-        if json_data['output_format'] == 'tiff':
-            os.system("/usr/bin/convert '" + os.path.join(stack_directory, output_filename_fits) + \
-                     "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_tiff) + "'")
-        elif json_data['output_format'] == 'jpeg' or json_data['output_format'] == 'jpg':
-            os.system("/usr/bin/convert '" + os.path.join(stack_directory, output_filename_fits) + \
-                      "' -contrast-stretch 50% '" + os.path.join(zip_directory, output_filename_jpg) + "'")
-        else:
-            shutil.copy(os.path.join(stack_directory, output_filename_fits),
-                    os.path.join(zip_directory, output_filename_fits))
+            if stack_method == 'median':
+                stack_final[:, :] = np.median(stack_array, axis=2)
+
+            elif stack_method == 'mean' or stack_method == 'average':
+                stack_final[:, :] = np.mean(stack_array, axis=2)
+            elif stack_method == 'sum':
+                stack_final[:, :] = np.sum(stack_array, axis=2)
+
+            print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+
+            output_filename = ref_image[1]['OBJECT'].replace(' ', '_')
+            output_filename += '_%s' % filter
+            output_filename += '_stack-%s_%imin' % (stack_method, exp_total_round)
+            print(output_filename)
+
+            output_filename_fits = '%s.fits' % output_filename
+            output_filename_tiff = '%s.tiff' % output_filename
+            output_filename_jpg = '%s.jpg' % output_filename
+
+            header_out['NCOMBINE'] = nimages
+            header_out['EXPTIME'] = exp_total
+
+            # todo need to fix OBSTIME for stacked image.
+            # todo we should rerun plate solution for this field
+
+            hdu = fits.PrimaryHDU(stack_final, header=header_out)
+            hdul = fits.HDUList([hdu])
+            print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+
+            if not os.path.isfile(os.path.join(stack_directory, output_filename_fits)):
+                hdul.writeto(os.path.join(stack_directory, output_filename_fits))
+
+            os.makedirs(os.path.join(zip_directory, 'Stacked'))
+
+            # convert to tiff or jpg if needed, save output to zip folder
+            if json_data['output_format'] == 'tiff':
+                os.system("/usr/bin/convert '" + os.path.join(stack_directory, output_filename_fits) + \
+                         "' -contrast-stretch 50% '" + os.path.join(zip_directory, 'Stacked', output_filename_tiff) + "'")
+            elif json_data['output_format'] == 'jpeg' or json_data['output_format'] == 'jpg':
+                os.system("/usr/bin/convert '" + os.path.join(stack_directory, output_filename_fits) + \
+                          "' -contrast-stretch 50% '" + os.path.join(zip_directory, 'Stacked', output_filename_jpg) + "'")
+            else:
+                shutil.copy(os.path.join(stack_directory, output_filename_fits),
+                        os.path.join(zip_directory, 'Stacked', output_filename_fits))
 
 print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 

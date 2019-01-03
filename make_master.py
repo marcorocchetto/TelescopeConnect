@@ -183,7 +183,10 @@ if json_data['make_type'].upper() == 'BIAS'\
     # create output fits frame
 
     # use header of first file and add some comments
+    # todo this is not ideal, we should modify DATE-OBS and EXPTIME to match master frame
+
     header_out['NCOMBINE'] = len(images)
+    header_out['MASTER'] = True
 
     hdu = fits.PrimaryHDU(master_image.astype(np.uint16), header=header_out)
     hdu.writeto(path_fits, overwrite=True)

@@ -1,15 +1,17 @@
 {
     "input_fits": [
-        "output_data/2016-09-08T20-24-53-M31-2008-12a-Rc_processed.fits",
-        "output_data/2016-09-08T20-28-07-M31-2008-12a-Rc_processed.fits",
-        "output_data/2016-09-08T22-03-41-M31-2008-12a-Rc_processed.fits",
-        "output_data/2016-09-08T22-07-01-M31-2008-12a-Rc_processed.fits",
-        "output_data/2016-09-08T22-10-21-M31-2008-12a-Rc_processed.fits",
-        "output_data/2016-09-08T22-37-03-M31-2008-12a-Rc_processed.fits",
-        "output_data/2016-09-08T22-40-23-M31-2008-12a-Rc_processed.fits"
+        "data/SampleData/RawLight/2018-03-04T04-22-00_Centaurus_A_Halpha_T-15_300s.fits",
+        "data/SampleData/RawLight/2018-03-04T04-27-59_Centaurus_A_Halpha_T-15_300s.fits",
+        "data/SampleData/RawLight/2018-03-04T04-34-00_Centaurus_A_Halpha_T-15_300s.fits",
+    ],
+    "input_calib": [
+        "data/2016-09-08/calibration/fits/2016-09-09T04-33-53-Dark.fits",
+		"data/2016-09-08/calibration/fits/2016-09-09T04-33-53-Dark.fits",
+        "data/2016-09-08/calibration/fits/2016-09-09T04-35-04-Dark.fits"
     ],
     "preprocess": ["stack"],
     "stack_type": "sum",
     "output_format": "fits",
+    "experimental": "",
     "output_folder":"output_data"
 }

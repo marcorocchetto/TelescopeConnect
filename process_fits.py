@@ -72,8 +72,6 @@ for idx, image_fname in enumerate(json_data['input_fits']):
 
     try:
 
-
-
         # Add a Pedestal of 300 ADUs
         image_out += 200
 

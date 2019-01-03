@@ -1,0 +1,38 @@
+{
+    "input_fits": [
+        "data/SampleData/RawLight/2018-03-04T04-22-00_Centaurus_A_Halpha_T-15_300s.fits",
+        "data/SampleData/RawLight/2018-03-04T04-27-59_Centaurus_A_Halpha_T-15_300s.fits",
+        "data/SampleData/RawLight/2018-03-04T04-34-00_Centaurus_A_Halpha_T-15_300s.fits",
+        "output_data/SampleReduction/2018-03-04T04-22-00_Centaurus_A_Halpha_T-15_300s_processed.fits",
+        "output_data/SampleReduction/2018-03-04T04-27-59_Centaurus_A_Halpha_T-15_300s_processed.fits",
+        "output_data/SampleReduction/2018-03-04T04-34-00_Centaurus_A_Halpha_T-15_300s_processed.fits"
+    ],
+    "input_calib": [
+        "data/SampleData/Dark/2018-03-01T21-01-05_Dark_T-15_300s.fits",
+        "data/SampleData/Dark/2018-03-01T21-06-35_Dark_T-15_300s.fits",
+        "data/SampleData/Dark/2018-03-01T21-12-05_Dark_T-15_300s.fits",
+        "data/SampleData/Dark/2018-03-05T16-07-24_Dark_T-25_300s.fits",
+        "data/SampleData/Dark/2018-03-05T16-12-53_Dark_T-25_300s.fits",
+        "data/SampleData/Dark/2018-03-05T16-18-23_Dark_T-25_300s.fits",
+        "data/SampleData/Bias/2018-03-01T21-17-36_Bias.fits",
+        "data/SampleData/Bias/2018-03-01T21-18-05_Bias.fits",
+        "data/SampleData/Bias/2018-03-01T21-18-35_Bias.fits",
+        "data/SampleData/Bias/2018-03-05T16-24-53_Bias.fits",
+        "data/SampleData/Bias/2018-03-05T16-25-23_Bias.fits",
+        "data/SampleData/Bias/2018-03-05T16-25-53_Bias.fits",
+        "data/SampleData/Flats/2018-03-04T10-29-01_Flat_Halpha_T-15_10s.fits",
+        "data/SampleData/Flats/2018-03-04T10-29-43_Flat_Halpha_T-15_10s.fits",
+        "data/SampleData/Flats/2018-03-04T10-30-26_Flat_Halpha_T-15_10s.fits",
+        "data/SampleData/Flats/2018-03-04T10-31-51_Flat_Halpha_T-15_5s.fits",
+        "data/SampleData/Flats/2018-03-06T10-31-46_Flat_Halpha_T-25_10s.fits",
+        "data/SampleData/Flats/2018-03-06T10-32-28_Flat_Halpha_T-25_10s.fits",
+        "data/SampleData/Flats/2018-03-06T10-33-09_Flat_Halpha_T-25_5s.fits",
+        "output_data/SampleReduction/2018-03-06T10-31-46_Halpha_MasterFlat.fits",
+        "output_data/SampleReduction/2018-03-05T16-07-24_T-25C_300s_MasterDark.fits",
+        "output_data/SampleReduction/2018-03-05T16-24-53_MasterBias.fits"    ],
+    "preprocess": ["stack", "align"],
+    "stack_type": "sum",
+    "output_format": "fits",
+    "experimental": "",
+    "output_folder":"output_data"
+}

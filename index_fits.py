@@ -201,14 +201,25 @@ output = {
     'observer': observer,
     'exptime': exptime,
     'filter': filter,
-    'fwhm': 0,
     'width_px': width_px,
     'height_px': height_px,
     'ccdtemp': ccdtemp,
     'indexing_version': get_Version(),
     'filename': filename,
     'jpg_large': path_jpg_large,
-    'jpg_thumb': path_jpg_thumb
+    'jpg_thumb': path_jpg_thumb,
+    'qa_passed': False,
+    'poor_fwhm': False,
+    'background_gradient': False,
+    'no_stars': False,
+    'ellipticity': 0,
+    'strikes': False,
+    'star_number': 0,
+    'fwhm': 0,
+    'internal_reflection': False,
+    'flat_field_residuals': False,
+    'rbi_residuals': False,
+    'saturated ': False
 }
 
 print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))

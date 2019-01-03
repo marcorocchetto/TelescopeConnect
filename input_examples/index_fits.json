@@ -1,5 +1,7 @@
 {
     "fits_fname": "/home/telescope/TelescopeConnect/data/2016-09-08/raw/fits/2016-09-08T20-13-13-M31-2008-12a-Lum.fits",
     "time_zone": "Europe/London",
-    "output_folder":"/home/telescope/TelescopeConnect/output_data"
+    "output_folder":"/home/telescope/TelescopeConnect/output_data",
+    "frame_type":"processed",
+    "imager_guid":"GUID"
 }
