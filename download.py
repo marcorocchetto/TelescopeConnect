@@ -12,6 +12,7 @@ python /home/telescope/TelescopeConnect/download.py --json=/home/telescope/Teles
 
 import argparse
 from astropy.io import fits
+import datetime
 import sys
 import numpy as np
 from time import strftime
@@ -364,8 +365,10 @@ print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024)
 
 sys.stdout = sys.__stdout__
 
-output_filename_zip = 'TelescopeConnect_' + random_string + '.zip'
-output_filename = 'TelescopeConnect_' + random_string
+timenow = datetime.datetime.today().strftime('%Y-%m-%dT%H-%M-%S')
+
+output_filename_zip = 'TelescopeLive_' + timenow  + '.zip'
+output_filename = 'TelescopeLive_' + timenow
 
 shutil.make_archive(os.path.join(json_data['output_folder'], output_filename), 'zip', zip_directory)
 shutil.rmtree(zip_directory)
