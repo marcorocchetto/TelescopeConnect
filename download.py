@@ -70,7 +70,7 @@ if not os.path.exists(orig_directory):
 
 # logging to text file, in zip folder
 log_filename = os.path.join(zip_directory, 'log.txt')
-#sys.stdout = open(log_filename, "w")
+sys.stdout = open(log_filename, "w")
 
 
 # stats_filename = os.path.join(zip_directory, 'stats.txt')
