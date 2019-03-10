@@ -70,7 +70,7 @@ if not os.path.isfile(json_data['fits_fname']):
 
 # open fits file hdu
 try:
-    hdulist = fits.open(json_data['fits_fname'])
+    hdulist = fits.open(json_data['fits_fname'], ignore_missing_end=True)
 except:
     RaiseError('Unexpected error:', sys.exc_info()[0])
 

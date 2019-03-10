@@ -101,12 +101,12 @@ def get_ImageType(imagetyp_header):
 
 
 def get_ImageHeader(fname, index=0):
-    hdulist = fits.open(fname)
+    hdulist = fits.open(fname, ignore_missing_end=True)
     header = hdulist[index].header
     return header
 
 def get_ImageData(fname, index=0):
-    hdulist = fits.open(fname)
+    hdulist = fits.open(fname, ignore_missing_end=True)
     imagedata = hdulist[index].data
     imagedata = np.asarray(imagedata, dtype=float)
     header = hdulist[index].header

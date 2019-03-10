@@ -101,7 +101,7 @@ all_images_dict = {
 for image_fname in all_images:
 
     # get header
-    hdulist = fits.open(image_fname)
+    hdulist = fits.open(image_fname, ignore_missing_end=True)
     header = hdulist[0].header
 
     # determine Image type from header IMAGETYP
@@ -132,7 +132,7 @@ for imgtype in ['Flat', 'Dark', 'Bias', 'Master', 'Raw']:
 
         for image_fname in all_images_dict[imgtype]:
 
-            hdulist = fits.open(image_fname)
+            hdulist = fits.open(image_fname, ignore_missing_end=True)
             header = hdulist[0].header
 
             filename = get_FileName(header)
@@ -163,7 +163,7 @@ if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preproce
 
         for image_fname in all_images_dict[imgtype]:
 
-            hdulist = fits.open(image_fname)
+            hdulist = fits.open(image_fname, ignore_missing_end=True)
             header = hdulist[0].header
 
             filename = get_FileName(header)
