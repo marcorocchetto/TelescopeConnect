@@ -150,7 +150,7 @@ def get_ObsNight(dateobs_utc_datetime, local):
     dateobs_lt_datetime = dateobs_utc_datetime + datetime.timedelta(seconds=offset_seconds)
     obsnight_datetime = dateobs_lt_datetime
     hh = dateobs_lt_datetime.strftime('%H')
-    if int(hh) < 12:
+    if int(hh) < 16:
         obsnight_datetime -= datetime.timedelta(seconds=86400)  # previous day if hour < 12
     obsnight_str = obsnight_datetime.strftime('%Y-%m-%d')
     return obsnight_str

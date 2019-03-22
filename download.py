@@ -101,7 +101,12 @@ all_images_dict = {
 for image_fname in all_images:
 
     # get header
-    hdulist = fits.open(image_fname, ignore_missing_end=True)
+    try:
+        hdulist = fits.open(image_fname, ignore_missing_end=True)
+    except:
+        print('Error reading ' + image_fname)
+        continue
+
     header = hdulist[0].header
 
     # determine Image type from header IMAGETYP
