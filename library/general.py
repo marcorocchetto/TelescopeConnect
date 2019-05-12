@@ -145,7 +145,7 @@ def get_ObsNight(dateobs_utc_datetime, local):
     # Returns obsnight_str, a date string of the form %Y-%m-%dT
 
     # convert dateobs_utc_datetime to local timezone, then use pytz to get local time offset
-    offset_seconds = local.localize(dateobs_utc_datetime, is_dst=None).utcoffset().total_seconds()
+    offset_seconds = local.localize(dateobs_utc_datetime).utcoffset().total_seconds()
     # get observing date in local time
     dateobs_lt_datetime = dateobs_utc_datetime + datetime.timedelta(seconds=offset_seconds)
     obsnight_datetime = dateobs_lt_datetime
