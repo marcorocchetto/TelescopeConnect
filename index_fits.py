@@ -14,28 +14,26 @@ python /home/telescope/TelescopeConnect/index_fits.py --json=/home/telescope/Tel
 import argparse
 import pytz
 from astropy.io import fits
-import sys
+
 import json
-import os
 
 import library.general
 from library.general import *
 
-# #loading parameter file parser
-# parser = argparse.ArgumentParser()
-# parser.add_argument('--fits_fname',
-#                     dest='fits_fname',
-#                     type=str,
-#                     default=False,
-#                     )
-# parser.add_argument('--time_zone',
-#                     dest='time_zone',
-#                     type=str,
-#                     default='Europe/London',
-#                     )
-# 
-# options = parser.parse_args()
+import contextlib
+import io
+import sys
 
+import sewpy
+import numpy as np
+import astropy
+
+import logging
+logging.basicConfig(level=logging.CRITICAL)
+
+sew = sewpy.SEW(params=["FWHM_IMAGE"],
+                config={"DETECT_MINAREA":50,
+                        "PHOT_FLUXFRAC":"0.3, 0.5, 0.8"})
 
 #loading parameter file parser
 parser = argparse.ArgumentParser()
@@ -154,7 +152,10 @@ else:
     filter = ''
 
 # ccd temperature
-ccdtemp = header['CCD-TEMP']
+if not 'CCD-TEMP' in header:
+    ccdtemp = 0
+else:
+    ccdtemp = header['CCD-TEMP']
 
 # image size
 width_px = len(data[0,:])
@@ -186,6 +187,57 @@ path_jpg_thumb = os.path.abspath(os.path.join(json_data['output_folder'], filena
 os.system("/usr/bin/convert '" + os.path.abspath(json_data['fits_fname']) + "' -contrast-stretch 3%  -resize 1024x '" + path_jpg_large + "'")
 os.system("/usr/bin/convert '" + os.path.abspath(json_data['fits_fname']) + "' -contrast-stretch 3%  -resize 100x '" + path_jpg_thumb + "'")
 
+# get seeing
+if not 'pixel_scale' in json_data:
+    seeing = 0
+else:
+
+    PixelScale = json_data['pixel_scale']
+
+    with open(os.devnull, 'w') as devnull:
+        with contextlib.redirect_stdout(devnull):
+            out = sew(json_data['fits_fname'])
+            seeing = round(np.median(out["table"][0][:]) * PixelScale, 1)
+
+# clean fits headers
+if 'WXSENSOR' in header:
+    del header['WXSENSOR']
+if 'SWSERIAL' in header:
+    del header['SWSERIAL']
+if 'HISTORY' in header:
+    del header['HISTORY']
+if 'COMMENT' in header:
+    del header['COMMENT']
+if 'PRESSURE' in header:
+    del header['PRESSURE']
+if 'SBSTDVER' in header:
+    del header['SBSTDVER']
+if 'SWOWNER' in header:
+    del header['SWOWNER']
+if 'PLTSOLVD' in header:
+    del header['PLTSOLVD']
+
+if 'telescope_model' in json_data:
+    header['TELESCOP'] = json_data['telescope_model']
+
+if 'imager_name' in json_data:
+    header['INSTRUME'] = json_data['imager_name']
+
+header['OBSERVER'] = 'TelescopeLive'
+
+if 'telescope_guid' in json_data:
+    header['TELID'] = json_data['telescope_guid']
+
+if 'imager_guid' in json_data:
+    header['IMAGERID'] = json_data['imager_guid']
+
+if 'frame_guid' in json_data:
+    header['FRAMEID'] = json_data['frame_guid']
+
+# save modified fits
+hdulist[0].header = header
+hdulist.writeto(json_data['fits_fname'], overwrite=True)
+
 output = {
     'result': 'SUCCESS',
     'dateobs_utc_str': dateobs_utc_str,
@@ -215,7 +267,7 @@ output = {
     'ellipticity': 0,
     'strikes': False,
     'star_number': 0,
-    'fwhm': 0,
+    'seeing': seeing,
     'internal_reflection': False,
     'flat_field_residuals': False,
     'rbi_residuals': False,
