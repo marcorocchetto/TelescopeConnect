@@ -32,8 +32,8 @@ import logging
 logging.basicConfig(level=logging.CRITICAL)
 
 sew = sewpy.SEW(params=["FWHM_IMAGE"],
-                config={"DETECT_MINAREA":50,
-                        "PHOT_FLUXFRAC":"0.3, 0.5, 0.8"})
+                config={"DETECT_MINAREA":200}
+                )
 
 #loading parameter file parser
 parser = argparse.ArgumentParser()
