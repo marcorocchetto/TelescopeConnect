@@ -53,18 +53,19 @@ def return_error(error):
     }
 
     print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
-
+    
+    sys.exit()
 
 try:
 
     if not options.json_filename:
-        RaiseError('You need an inpunt JSON file')
+        return_error('You need an inpunt JSON file')
 
     json_data = json.loads(open(options.json_filename).read())
 
 
     if not json_data['fits_fname']:
-        RaiseError('File name not specified')
+        return_error('File name not specified')
 
     if not json_data['time_zone']:
         local = pytz.timezone('Etc/GMT')
@@ -76,13 +77,13 @@ try:
 
     # check file exists
     if not os.path.isfile(json_data['fits_fname']):
-        RaiseError('File not found')
+        return_error('File not found')
 
     # open fits file hdu
     try:
         hdulist = fits.open(json_data['fits_fname'], ignore_missing_end=True)
     except:
-        RaiseError('Unexpected error:' + sys.exc_info()[0])
+        return_error('Unexpected error:' + sys.exc_info()[0])
 
     # get header & data
     header = hdulist[0].header
@@ -90,7 +91,7 @@ try:
     try:
         data = hdulist[0].data
     except:
-        RaiseError('Unexpected error:' + sys.exc_info()[0])
+        return_error('Unexpected error:' + sys.exc_info()[0])
 
     # temporary fix for PinPoint simulated images
     if not 'IMAGETYP' in hdulist[0].header:
@@ -101,13 +102,13 @@ try:
     header_keys = ['DATE-OBS', 'CCD-TEMP', 'EXPTIME'] # temp fix
     for key in header_keys:
         if not key in hdulist[0].header:
-            RaiseError('Header key `%s` missing' % key)
+            return_error('Header key `%s` missing' % key)
 
 
     # determine Image type from header IMAGETYP
     imagetype = get_ImageType(header['IMAGETYP'])
     if not imagetype:
-        RaiseError('Cannot determine ImageType')
+        return_error('Cannot determine ImageType')
 
     # Date and time of observation: keyword DATE-OBS
     dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
@@ -296,4 +297,4 @@ try:
 
 except:
 
-    RaiseError('Unexpected error:' + sys.exc_info()[0])
+    return_error('Unexpected error:' + sys.exc_info()[0])
