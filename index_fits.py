@@ -14,6 +14,8 @@ python /home/telescope/TelescopeConnect/index_fits.py --json=/home/telescope/Tel
 import argparse
 import pytz
 from astropy.io import fits
+from astropy import log
+
 
 import json
 
@@ -46,6 +48,10 @@ parser.add_argument('--json',
                     )
 
 options = parser.parse_args()
+
+
+log.setLevel('ERROR')
+
 
 def return_error(error):
 
