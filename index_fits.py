@@ -17,6 +17,8 @@ from astropy.io import fits
 
 import json
 
+import traceback
+
 import library.general
 from library.general import *
 
@@ -48,7 +50,7 @@ options = parser.parse_args()
 def return_error(error):
 
     output = {
-        'result': 'SUCCESS',
+        'result': 'Failed',
         'message': error
     }
 
@@ -82,16 +84,17 @@ try:
     # open fits file hdu
     try:
         hdulist = fits.open(json_data['fits_fname'], ignore_missing_end=True)
-    except:
-        return_error('Unexpected error:' + sys.exc_info()[0])
+    except Exception as e:
+        return_error(str(e) + "Traceback: " + traceback.format_exc())
+
 
     # get header & data
     header = hdulist[0].header
 
     try:
         data = hdulist[0].data
-    except:
-        return_error('Unexpected error:' + sys.exc_info()[0])
+    except Exception as e:
+        return_error(str(e) + "Traceback: " + traceback.format_exc())
 
     # temporary fix for PinPoint simulated images
     if not 'IMAGETYP' in hdulist[0].header:
@@ -295,6 +298,6 @@ try:
 
     print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
 
-except:
+except Exception as e:
 
-    return_error('Unexpected error:' + sys.exc_info()[0])
+    return_error(str(e) + "Traceback: " + traceback.format_exc())
