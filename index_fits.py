@@ -82,7 +82,7 @@ try:
     try:
         hdulist = fits.open(json_data['fits_fname'], ignore_missing_end=True)
     except:
-        RaiseError('Unexpected error:', sys.exc_info()[0])
+        RaiseError('Unexpected error:' + sys.exc_info()[0])
 
     # get header & data
     header = hdulist[0].header
@@ -90,7 +90,7 @@ try:
     try:
         data = hdulist[0].data
     except:
-        RaiseError('Unexpected error:', sys.exc_info()[0])
+        RaiseError('Unexpected error:' + sys.exc_info()[0])
 
     # temporary fix for PinPoint simulated images
     if not 'IMAGETYP' in hdulist[0].header:
@@ -295,5 +295,5 @@ try:
     print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
 
 except:
-    
-    RaiseError('Unexpected error:', sys.exc_info()[0])
+
+    RaiseError('Unexpected error:' + sys.exc_info()[0])
