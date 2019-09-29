@@ -220,12 +220,12 @@ try:
     os.system("/usr/bin/convert '" + os.path.abspath(json_data['fits_fname']) + "' -contrast-stretch 3%  -resize 100x '" + path_jpg_thumb + "'")
 
     # get seeing
+
     if not 'pixel_scale' in json_data:
         seeing = 0
     else:
 
         PixelScale = json_data['pixel_scale']
-
 
         try:
             with open(os.devnull, 'w') as devnull:
@@ -236,6 +236,9 @@ try:
         except:
 
             seeing = 0
+
+    if not seeing:
+        seeing = 0
 
     # clean fits headers
     if 'WXSENSOR' in header:
