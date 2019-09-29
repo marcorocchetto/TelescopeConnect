@@ -221,6 +221,8 @@ try:
 
     # get seeing
 
+    seeing = 0
+
     if not 'pixel_scale' in json_data:
         seeing = 0
     else:
