@@ -331,7 +331,15 @@ if 'stack' in json_data['preprocess']:
 
             print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
-            output_filename = ref_image[1]['OBJECT'].replace(' ', '_')
+            object = ref_image[1]['OBJECT']
+            object = object.replace('\'', '-')
+            object = object.replace('/', '-')
+            object = object.replace('(', '_')
+            object = object.replace(')', '_')
+            object = object.replace(' ', '_')
+
+            output_filename = object
+
             output_filename += '_%s' % filter
             output_filename += '_stack-%s_%imin' % (stack_method, exp_total_round)
             print(output_filename)

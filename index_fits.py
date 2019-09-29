@@ -191,7 +191,13 @@ try:
     filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
     if imagetype == 'LIGHT':
         if 'OBJECT' in header:
-            filename += '-' + header['OBJECT']
+            object = header['OBJECT']
+            object = object.replace('\'', '-')
+            object = object.replace('/', '-')
+            object = object.replace('(', '_')
+            object = object = object.replace(')', '_')
+            object = object.replace(' ', '_')
+            filename += '-' + object
         filename += '-' + header['FILTER'].replace("'", "prime")
     if imagetype == 'BIAS':
         filename += '-Bias'
