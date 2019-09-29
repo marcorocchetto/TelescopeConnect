@@ -226,10 +226,16 @@ try:
 
         PixelScale = json_data['pixel_scale']
 
-        with open(os.devnull, 'w') as devnull:
-            with contextlib.redirect_stdout(devnull):
-                out = sew(json_data['fits_fname'])
-                seeing = round(np.median(out["table"][0][:]) * PixelScale, 1)
+
+        try:
+            with open(os.devnull, 'w') as devnull:
+                with contextlib.redirect_stdout(devnull):
+                    out = sew(json_data['fits_fname'])
+                    if len(out["table"]) > 0:
+                        seeing = round(np.median(out["table"][0][:]) * PixelScale, 1)
+        except:
+
+            seeing = 0
 
     # clean fits headers
     if 'WXSENSOR' in header:
