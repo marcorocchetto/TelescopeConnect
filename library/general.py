@@ -28,7 +28,14 @@ def get_FileName(header):
     imagetype = get_ImageType(header['IMAGETYP'])
     if imagetype == 'LIGHT':
         if 'OBJECT' in header:
-            filename += '_' + header['OBJECT']
+            object = header['OBJECT']
+            object = object.replace('\'', '-')
+            object = object.replace('/', '-')
+            object = object.replace('(', '_')
+            object = object.replace(')', '_')
+            object = object.replace(' ', '_')
+            filename += '_' + object
+
         filename += '_' + header['FILTER'].replace("'", "prime")
         filename += '_T'
         filename += str(ccdtemp)
