@@ -38,7 +38,7 @@ def get_FileName(header):
 
         filename += '_' + header['FILTER'].replace("'", "prime")
         filename += '_T'
-        filename += str(ccdtemp)
+        filename += str(int(ccdtemp))
         filename += '_'
         filename += str(exptime)
         filename += 's'

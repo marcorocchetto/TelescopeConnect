@@ -89,7 +89,7 @@ if json_data['make_type'].upper() == 'BIAS'\
             filename += '_MasterBias'
 
     if json_data['make_type'].upper() == 'DARK':
-            filename += '_T%sC' % json_data['ccd_temp_avg']
+            filename += '_T%sC' % int(json_data['ccd_temp_avg'])
             filename += '_%is' % int(round(images[0][1]['EXPTIME']))
             filename += '_MasterDark'
 
