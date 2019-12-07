@@ -93,7 +93,6 @@ try:
     except Exception as e:
         return_error(str(e) + "Traceback: " + traceback.format_exc())
 
-
     # get header & data
     header = hdulist[0].header
 
@@ -125,7 +124,6 @@ try:
 
     # Determine OBSNIGHT, i.e. night of observation
     obsnight_str = get_ObsNight(dateobs_utc_datetime, local)
-
 
     # RA and DEC, header keys: OBJCTRA, OBJCTDEC or RA, DEC
     if 'OBJCTRA' in header:
@@ -177,11 +175,27 @@ try:
     else:
         filter = ''
 
+    # fix filter names (chilescope)
+    if filter == 'Lum':
+        filter = 'Luminance'
+    elif filter == 'H-alpha':
+        filter = 'Halpha'
+    elif filter == 'Oiii':
+        filter = 'OIII'
+    elif filter == 'Sii':
+        filter = 'SII'
+    elif filter == 'SLOAN':
+        filter = 'Sloan r'
+
+    header['FILTER'] = filter
+
+
     # ccd temperature
     if not 'CCD-TEMP' in header:
         ccdtemp = 0
     else:
         ccdtemp = header['CCD-TEMP']
+
 
     # image size
     width_px = len(data[0,:])
@@ -247,6 +261,8 @@ try:
         del header['WXSENSOR']
     if 'SWSERIAL' in header:
         del header['SWSERIAL']
+    if 'SWCREATE' in header:
+        del header['SWCREATE']
     if 'HISTORY' in header:
         del header['HISTORY']
     if 'COMMENT' in header:
