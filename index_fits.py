@@ -334,7 +334,7 @@ try:
         'flat_field_residuals': False,
         'rbi_residuals': False,
         'saturated ': False,
-        'binning ': binning
+        'binning': binning
     }
 
     print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
