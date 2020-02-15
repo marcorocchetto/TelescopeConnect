@@ -194,6 +194,7 @@ if json_data['make_type'].upper() == 'BIAS'\
 
     os.system("/usr/bin/convert '" + path_fits + "' -contrast-stretch 3%  -resize 1024x '" + path_jpg_large + "'")
 
+
     os.system("/usr/bin/convert '" + path_fits + "' -contrast-stretch 3% -resize 100x '" + path_jpg_thumb + "'")
 
     output = {

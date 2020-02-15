@@ -107,7 +107,7 @@ try:
 
     # check that some required FITS headers are present, otherwise raise error
     #header_keys = ['DATE-OBS', 'IMAGETYP', 'CCD-TEMP', 'EXPTIME']
-    header_keys = ['DATE-OBS', 'CCD-TEMP', 'EXPTIME'] # temp fix
+    header_keys = ['DATE-OBS', 'CCD-TEMP', 'EXPTIME', 'XBINNING', 'YBINNING']
     for key in header_keys:
         if not key in hdulist[0].header:
             return_error('Header key `%s` missing' % key)
@@ -166,9 +166,9 @@ try:
     # exposure time
     exptime = header['EXPTIME']
 
-    # filter
-    if not 'FILTER' in header:
-        header['FILTER'] = 'Clear'
+    # # filter
+    # if not 'FILTER' in header:
+    #     header['FILTER'] = 'Clear'
 
     if 'FILTER' in header and imagetype != 'BIAS':
         filter = header['FILTER']
@@ -189,13 +189,11 @@ try:
 
     header['FILTER'] = filter
 
-
     # ccd temperature
     if not 'CCD-TEMP' in header:
         ccdtemp = 0
     else:
         ccdtemp = header['CCD-TEMP']
-
 
     # image size
     width_px = len(data[0,:])
@@ -255,6 +253,9 @@ try:
 
     if not seeing:
         seeing = 0
+
+    # get binning
+    binning = header['XBINNING'] # assume YBINNING is the same
 
     # clean fits headers
     if 'WXSENSOR' in header:
@@ -332,7 +333,8 @@ try:
         'internal_reflection': False,
         'flat_field_residuals': False,
         'rbi_residuals': False,
-        'saturated ': False
+        'saturated ': False,
+        'binning ': binning
     }
 
     print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
