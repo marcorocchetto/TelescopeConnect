@@ -142,6 +142,9 @@ for imgtype in ['Flat', 'Dark', 'Bias', 'Master', 'Raw']:
 
             filename = get_FileName(header)
 
+            if imgtype == 'Raw':
+                filename += '_raw.fits'
+
             output_filename_fits = filename + '.fits'
             output_filename_tiff = filename + '.tiff'
             output_filename_jpg = filename + '.jpg'
@@ -173,9 +176,9 @@ if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preproce
 
             filename = get_FileName(header)
 
-            output_filename_fits = filename + '.fits'
-            output_filename_tiff = filename + '.tiff'
-            output_filename_jpg = filename + '.jpg'
+            output_filename_fits = filename + '_cal.fits'
+            output_filename_tiff = filename + '_cal.tiff'
+            output_filename_jpg = filename + '_cal.jpg'
 
             if json_data['output_format'] == 'fits':
                 shutil.copy(image_fname, os.path.join(zip_directory, imgtype, output_filename_fits))
