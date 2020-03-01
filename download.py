@@ -143,7 +143,7 @@ for imgtype in ['Flat', 'Dark', 'Bias', 'Master', 'Raw']:
             filename = get_FileName(header)
 
             if imgtype == 'Raw':
-                filename += '_raw.fits'
+                filename += '_raw'
 
             output_filename_fits = filename + '.fits'
             output_filename_tiff = filename + '.tiff'
@@ -165,7 +165,7 @@ if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preproce
 
     if len(all_images_dict['Processed']) > 0:
 
-        imgtype = 'Processed'
+        imgtype = 'Calibrated'
 
         os.makedirs(os.path.join(zip_directory, imgtype))
 

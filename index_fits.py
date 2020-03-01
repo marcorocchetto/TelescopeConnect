@@ -186,6 +186,9 @@ try:
         filter = 'SII'
     elif filter == 'SLOAN':
         filter = 'Sloan r'
+    elif filter == 'r-Sloan':
+        filter = 'Sloan r'
+
 
     header['FILTER'] = filter
 
