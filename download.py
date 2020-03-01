@@ -165,7 +165,7 @@ if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preproce
 
     if len(all_images_dict['Processed']) > 0:
 
-        imgtype = 'Calibrated'
+        imgtype = 'Processed'
 
         os.makedirs(os.path.join(zip_directory, imgtype))
 
