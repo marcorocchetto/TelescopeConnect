@@ -94,6 +94,12 @@ try:
     except Exception as e:
         return_error(str(e) + "Traceback: " + traceback.format_exc())
 
+    # init var
+    qa_pointing = False
+    qa_seeing = False
+    qa_passed = False
+    seeing = 0
+
     # get header & data
     header = hdu[0].header
 
@@ -121,143 +127,151 @@ try:
     # Date and time of observation: keyword DATE-OBS
     dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
 
+    if imagetype != 'LIGHT':
 
-    if 'max_allowed_seeing'in json_data:
-        max_allowed_seeing = json_data['max_allowed_seeing']
-    else:
-        max_allowed_seeing = 99
-
-    # get seeing
-    seeing = 0
-    if not 'pixel_scale' in json_data:
-        seeing = 0
-    else:
-
-        PixelScale = json_data['pixel_scale']
-
-        workenv = json_data['output_folder']
-
-        margin = 200
-        scalelow = PixelScale * 0.9
-        scalehigh = PixelScale * 1.1
-        hdu = fits.open(os.path.abspath(json_data['fits_fname']))
-        xaxis = hdu[0].header['NAXIS1']
-        yaxis = hdu[0].header['NAXIS2']
-        binning = hdu[0].header['XBINNING']
-        ra = hdu[0].header['OBJCTRA'].replace(' ', ':')
-        dec = hdu[0].header['OBJCTDEC'].replace(' ', ':')
-        radius = 5*round(np.sqrt(2) * xaxis * PixelScale / 2 / 60)  # radius of search in arcmin (5 field diagonals)
-
-        args = '--verbose --use-sextractor --tweak-order 2 ' \
-               '--ra %s --dec %s --radius 2 ' \
-               '--dir %s --no-plots --overwrite ' \
-               ' --scale-units arcsecperpix  --scale-low %.2f --scale-high %.2f' \
-               ' %s' % (ra, dec, workenv, scalelow, scalehigh, os.path.abspath(json_data['fits_fname']))
-
-        with open(os.devnull, 'wb') as devnull:
-            try:
-                output = subprocess.check_output(solvefield + ' ' + args,
-                                                 stderr=subprocess.STDOUT, shell=True)
-            except subprocess.CalledProcessError as e:
-                return_error(e.output)
-
-        # check if test.solved exists
-        if not os.path.isfile(os.path.join(workenv, os.path.splitext(os.path.basename(os.path.abspath(json_data['fits_fname'])))[0] + '.solved')):
-
-            seeing = 0
-            platesolved = False
-
-        else:
-
-            platesolved = True
-
-            filename_new = os.path.join(workenv, os.path.splitext(os.path.basename(os.path.abspath(json_data['fits_fname'])))[0] + '.new')
-            filename_final = os.path.abspath(json_data['fits_fname'])
-
-            shutil.move(filename_new, filename_final)
-
-            hdu = fits.open(filename_final)
-            image = hdu[0].data
-            header = hdu[0].header
-
-            sew = sewpy.SEW(params=["FWHM_IMAGE", "X_WORLD", "Y_WORLD", "X_IMAGE", "Y_IMAGE", "BACKGROUND", "FLUX_ISOCOR"],
-                            config={"DETECT_MINAREA": 50, "DETECTION_TRESH": 2})
-            sewout = sew(filename_final)
-
-            sort = sewout['table'].argsort(['FLUX_ISOCOR'])[::-1]
-            sorted_table = sewout['table'][:][sort]
-            fieldstars_world = []
-            fieldstars_image = []
-            fieldstars_seeing = []
-            fieldstars_background = []
-
-            # remove stars with bad background
-            bgrm_table = sorted_table[sorted_table['BACKGROUND'] < np.median(image)]
-
-            # remove edge stars
-            for fieldstar in bgrm_table[:150]: # take top 150
-                if fieldstar["X_IMAGE"] > margin and fieldstar["X_IMAGE"] < (xaxis - margin) and \
-                        fieldstar["Y_IMAGE"] > margin and fieldstar["Y_IMAGE"] < (yaxis - margin):
-                    fieldstars_world.append((fieldstar["X_WORLD"], fieldstar["Y_WORLD"]))
-                    fieldstars_image.append((fieldstar["X_IMAGE"], fieldstar["Y_IMAGE"]))
-                    fieldstars_seeing.append(fieldstar["FWHM_IMAGE"])
-                    fieldstars_background.append(fieldstar["BACKGROUND"])
-
-            ra = hdu[0].header['CRVAL1']
-            dec = hdu[0].header['CRVAL2']
-            c = SkyCoord(ra, dec, unit="deg")
-
-            fn_fieldstars = os.path.join(workenv, os.path.splitext(os.path.basename(filename_new))[0] + '.fieldstars')
-            f = open(fn_fieldstars, "w+")
-            f.write('ra, dec,idx \n')
-            for idx, result in enumerate(fieldstars_world):
-                f.write(str(result[0]) + ', ' + str(result[1]) + ',' + str(idx) + '\n')
-            f.close()
-
-            table = XMatch.query(cat1=open(fn_fieldstars),
-                                 cat2='vizier:II/246/out',
-                                 max_distance=5 * u.arcsec,
-                                 colRA1='ra',
-                                 colDec1='dec')
-
-            seeing_values = []
-            for idx in table['idx']:
-                seeing_values.append(fieldstars_seeing[idx])
-            seeing = np.median(seeing_values) * PixelScale * int(binning)
-
-    if not seeing:
-        seeing = 0
-
-    if seeing > 0:
-        if seeing > max_allowed_seeing:
-            qa_seeing = False
-            poor_fwhm = True
-        else:
-            qa_seeing = True
-    else:
-        qa_seeing = False
-
-    # check pointing
-    if platesolved:
-        imgwcs = wcs.WCS(hdu[0].header)
-        coord1 = wcs.utils.pixel_to_skycoord(xaxis / 2, yaxis / 2, imgwcs)
-
-        coord2 = SkyCoord(hdu[0].header['OBJCTRA'], hdu[0].header['OBJCTDEC'],
-                          unit=(units.hourangle, units.degree)).transform_to('fk5')
-        separation = coord1.separation(coord2).arcsecond
-
-        if separation > 0.1 * PixelScale * xaxis:
-            qa_poitning = False
-        else:
-            qa_pointing = True
-
-    else:
-        qa_poitning = False
-
-    if not qa_seeing or not qa_poitning:
-        qa_passed = False
-    else:
+        # it's a calibration frame
         qa_passed = True
+        qa_pointing = True
+        seeing = 0
+
+    else:
+
+        if 'max_allowed_seeing'in json_data:
+            max_allowed_seeing = json_data['max_allowed_seeing']
+        else:
+            max_allowed_seeing = 99
+
+        # get seeing
+        seeing = 0
+        if not 'pixel_scale' in json_data:
+            seeing = 0
+        else:
+
+            PixelScale = json_data['pixel_scale']
+
+            workenv = json_data['output_folder']
+
+            margin = 200
+            scalelow = PixelScale * 0.9
+            scalehigh = PixelScale * 1.1
+            hdu = fits.open(os.path.abspath(json_data['fits_fname']))
+            xaxis = hdu[0].header['NAXIS1']
+            yaxis = hdu[0].header['NAXIS2']
+            binning = hdu[0].header['XBINNING']
+            ra = hdu[0].header['OBJCTRA'].replace(' ', ':')
+            dec = hdu[0].header['OBJCTDEC'].replace(' ', ':')
+            radius = 5*round(np.sqrt(2) * xaxis * PixelScale / 2 / 60)  # radius of search in arcmin (5 field diagonals)
+
+            args = '--verbose --use-sextractor --tweak-order 2 ' \
+                   '--ra %s --dec %s --radius 2 ' \
+                   '--dir %s --no-plots --overwrite ' \
+                   ' --scale-units arcsecperpix  --scale-low %.2f --scale-high %.2f' \
+                   ' %s' % (ra, dec, workenv, scalelow, scalehigh, os.path.abspath(json_data['fits_fname']))
+
+            with open(os.devnull, 'wb') as devnull:
+                try:
+                    output = subprocess.check_output(solvefield + ' ' + args,
+                                                     stderr=subprocess.STDOUT, shell=True)
+                except subprocess.CalledProcessError as e:
+                    return_error(e.output)
+
+            # check if test.solved exists
+            if not os.path.isfile(os.path.join(workenv, os.path.splitext(os.path.basename(os.path.abspath(json_data['fits_fname'])))[0] + '.solved')):
+
+                seeing = 0
+                platesolved = False
+
+            else:
+
+                platesolved = True
+
+                filename_new = os.path.join(workenv, os.path.splitext(os.path.basename(os.path.abspath(json_data['fits_fname'])))[0] + '.new')
+                filename_final = os.path.abspath(json_data['fits_fname'])
+
+                shutil.move(filename_new, filename_final)
+
+                hdu = fits.open(filename_final)
+                image = hdu[0].data
+                header = hdu[0].header
+
+                sew = sewpy.SEW(params=["FWHM_IMAGE", "X_WORLD", "Y_WORLD", "X_IMAGE", "Y_IMAGE", "BACKGROUND", "FLUX_ISOCOR"],
+                                config={"DETECT_MINAREA": 50, "DETECTION_TRESH": 2})
+                sewout = sew(filename_final)
+
+                sort = sewout['table'].argsort(['FLUX_ISOCOR'])[::-1]
+                sorted_table = sewout['table'][:][sort]
+                fieldstars_world = []
+                fieldstars_image = []
+                fieldstars_seeing = []
+                fieldstars_background = []
+
+                # remove stars with bad background
+                bgrm_table = sorted_table[sorted_table['BACKGROUND'] < np.median(image)]
+
+                # remove edge stars
+                for fieldstar in bgrm_table[:150]: # take top 150
+                    if fieldstar["X_IMAGE"] > margin and fieldstar["X_IMAGE"] < (xaxis - margin) and \
+                            fieldstar["Y_IMAGE"] > margin and fieldstar["Y_IMAGE"] < (yaxis - margin):
+                        fieldstars_world.append((fieldstar["X_WORLD"], fieldstar["Y_WORLD"]))
+                        fieldstars_image.append((fieldstar["X_IMAGE"], fieldstar["Y_IMAGE"]))
+                        fieldstars_seeing.append(fieldstar["FWHM_IMAGE"])
+                        fieldstars_background.append(fieldstar["BACKGROUND"])
+
+                ra = hdu[0].header['CRVAL1']
+                dec = hdu[0].header['CRVAL2']
+                c = SkyCoord(ra, dec, unit="deg")
+
+                fn_fieldstars = os.path.join(workenv, os.path.splitext(os.path.basename(filename_new))[0] + '.fieldstars')
+                f = open(fn_fieldstars, "w+")
+                f.write('ra, dec,idx \n')
+                for idx, result in enumerate(fieldstars_world):
+                    f.write(str(result[0]) + ', ' + str(result[1]) + ',' + str(idx) + '\n')
+                f.close()
+
+                table = XMatch.query(cat1=open(fn_fieldstars),
+                                     cat2='vizier:II/246/out',
+                                     max_distance=5 * u.arcsec,
+                                     colRA1='ra',
+                                     colDec1='dec')
+
+                seeing_values = []
+                for idx in table['idx']:
+                    seeing_values.append(fieldstars_seeing[idx])
+                seeing = np.median(seeing_values) * PixelScale * int(binning)
+
+        if not seeing:
+            seeing = 0
+
+        if seeing > 0:
+            if seeing > max_allowed_seeing:
+                qa_seeing = False
+                poor_fwhm = True
+            else:
+                qa_seeing = True
+        else:
+            qa_seeing = False
+
+        # check pointing
+        if platesolved:
+            imgwcs = wcs.WCS(hdu[0].header)
+            coord1 = wcs.utils.pixel_to_skycoord(xaxis / 2, yaxis / 2, imgwcs)
+
+            coord2 = SkyCoord(hdu[0].header['OBJCTRA'], hdu[0].header['OBJCTDEC'],
+                              unit=(units.hourangle, units.degree)).transform_to('fk5')
+            separation = coord1.separation(coord2).arcsecond
+
+            if separation > 0.1 * PixelScale * xaxis:
+                qa_pointing = False
+            else:
+                qa_pointing = True
+
+        else:
+            qa_pointing = False
+
+        if not qa_seeing or not qa_pointing:
+            qa_passed = False
+        else:
+            qa_passed = True
 
     # Determine OBSNIGHT, i.e. night of observation
     obsnight_str = get_ObsNight(dateobs_utc_datetime, local)
