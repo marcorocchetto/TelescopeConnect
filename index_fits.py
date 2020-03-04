@@ -13,6 +13,8 @@ python /home/telescope/TelescopeConnect/index_fits.py --json=/home/telescope/Tel
 import warnings
 warnings.filterwarnings("ignore")
 
+import sys
+sys.path.append('/home/telescope/anaconda3/lib/python3.6/site-packages')
 
 import argparse
 import pytz
@@ -20,7 +22,6 @@ from astropy import log
 import traceback
 from library.general import *
 import io
-import sys
 import logging
 logging.basicConfig(level=logging.CRITICAL)
 
@@ -51,7 +52,7 @@ solvefield = '/usr/local/astrometry/bin/solve-field'
 log.setLevel('ERROR')
 
 save_stdout = sys.stdout
-sys.stdout = io.StringIO()
+# sys.stdout = io.StringIO()
 
 
 def return_error(error):
@@ -61,8 +62,8 @@ def return_error(error):
         'message': error
     }
 
-    print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
-    
+    print(error)
+
     sys.exit()
 
 try:
@@ -460,7 +461,7 @@ try:
         'ellipticity': 0,
         'strikes': False,
         'star_number': 0,
-        'seeing': seeing,
+        'seeing': round(seeing, 1),
         'internal_reflection': False,
         'flat_field_residuals': False,
         'rbi_residuals': False,
