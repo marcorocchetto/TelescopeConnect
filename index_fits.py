@@ -36,6 +36,7 @@ from astropy.io import fits
 from astropy import wcs
 from astropy import units
 from astroquery.xmatch import XMatch
+import math
 
 #loading parameter file parser
 parser = argparse.ArgumentParser()
@@ -195,52 +196,59 @@ try:
                 image = hdu[0].data
                 header = hdu[0].header
 
-                sew = sewpy.SEW(params=["FWHM_IMAGE", "X_WORLD", "Y_WORLD", "X_IMAGE", "Y_IMAGE", "BACKGROUND", "FLUX_ISOCOR"],
-                                config={"DETECT_MINAREA": 50, "DETECTION_TRESH": 2})
-                sewout = sew(filename_final)
+                try:
 
-                sort = sewout['table'].argsort(['FLUX_ISOCOR'])[::-1]
-                sorted_table = sewout['table'][:][sort]
-                fieldstars_world = []
-                fieldstars_image = []
-                fieldstars_seeing = []
-                fieldstars_background = []
+                    sew = sewpy.SEW(params=["FWHM_IMAGE", "X_WORLD", "Y_WORLD", "X_IMAGE", "Y_IMAGE", "BACKGROUND", "FLUX_ISOCOR"],
+                                    config={"DETECT_MINAREA": 50, "DETECTION_TRESH": 2})
+                    sewout = sew(filename_final)
 
-                # remove stars with bad background
-                bgrm_table = sorted_table[sorted_table['BACKGROUND'] < np.median(image)]
+                    sort = sewout['table'].argsort(['FLUX_ISOCOR'])[::-1]
+                    sorted_table = sewout['table'][:][sort]
+                    fieldstars_world = []
+                    fieldstars_image = []
+                    fieldstars_seeing = []
+                    fieldstars_background = []
 
-                # remove edge stars
-                for fieldstar in bgrm_table[:150]: # take top 150
-                    if fieldstar["X_IMAGE"] > margin and fieldstar["X_IMAGE"] < (xaxis - margin) and \
-                            fieldstar["Y_IMAGE"] > margin and fieldstar["Y_IMAGE"] < (yaxis - margin):
-                        fieldstars_world.append((fieldstar["X_WORLD"], fieldstar["Y_WORLD"]))
-                        fieldstars_image.append((fieldstar["X_IMAGE"], fieldstar["Y_IMAGE"]))
-                        fieldstars_seeing.append(fieldstar["FWHM_IMAGE"])
-                        fieldstars_background.append(fieldstar["BACKGROUND"])
+                    # remove stars with bad background
+                    bgrm_table = sorted_table[sorted_table['BACKGROUND'] < np.median(image)]
 
-                ra = hdu[0].header['CRVAL1']
-                dec = hdu[0].header['CRVAL2']
-                c = SkyCoord(ra, dec, unit="deg")
+                    # remove edge stars
+                    for fieldstar in bgrm_table[:150]: # take top 150
+                        if fieldstar["X_IMAGE"] > margin and fieldstar["X_IMAGE"] < (xaxis - margin) and \
+                                fieldstar["Y_IMAGE"] > margin and fieldstar["Y_IMAGE"] < (yaxis - margin):
+                            fieldstars_world.append((fieldstar["X_WORLD"], fieldstar["Y_WORLD"]))
+                            fieldstars_image.append((fieldstar["X_IMAGE"], fieldstar["Y_IMAGE"]))
+                            fieldstars_seeing.append(fieldstar["FWHM_IMAGE"])
+                            fieldstars_background.append(fieldstar["BACKGROUND"])
 
-                fn_fieldstars = os.path.join(workenv, os.path.splitext(os.path.basename(filename_new))[0] + '.fieldstars')
-                f = open(fn_fieldstars, "w+")
-                f.write('ra, dec,idx \n')
-                for idx, result in enumerate(fieldstars_world):
-                    f.write(str(result[0]) + ', ' + str(result[1]) + ',' + str(idx) + '\n')
-                f.close()
+                    ra = hdu[0].header['CRVAL1']
+                    dec = hdu[0].header['CRVAL2']
+                    c = SkyCoord(ra, dec, unit="deg")
 
-                table = XMatch.query(cat1=open(fn_fieldstars),
-                                     cat2='vizier:II/246/out',
-                                     max_distance=5 * u.arcsec,
-                                     colRA1='ra',
-                                     colDec1='dec')
+                    fn_fieldstars = os.path.join(workenv, os.path.splitext(os.path.basename(filename_new))[0] + '.fieldstars')
+                    f = open(fn_fieldstars, "w+")
+                    f.write('ra, dec,idx \n')
+                    for idx, result in enumerate(fieldstars_world):
+                        f.write(str(result[0]) + ', ' + str(result[1]) + ',' + str(idx) + '\n')
+                    f.close()
 
-                seeing_values = []
-                for idx in table['idx']:
-                    seeing_values.append(fieldstars_seeing[idx])
-                seeing = np.median(seeing_values) * PixelScale * int(binning)
+                    table = XMatch.query(cat1=open(fn_fieldstars),
+                                         cat2='vizier:II/246/out',
+                                         max_distance=5 * u.arcsec,
+                                         colRA1='ra',
+                                         colDec1='dec')
 
-        if not seeing:
+                    seeing_values = []
+                    for idx in table['idx']:
+                        seeing_values.append(fieldstars_seeing[idx])
+                    seeing = np.median(seeing_values) * PixelScale * int(binning)
+
+
+                except Exception as e:
+
+                    seeing = 0
+
+        if not seeing or math.isnan(seeing):
             seeing = 0
 
         if seeing > 0:
@@ -251,6 +259,8 @@ try:
                 qa_seeing = True
         else:
             qa_seeing = False
+
+
 
         # check pointing
         if platesolved:
