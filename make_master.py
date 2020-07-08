@@ -128,7 +128,8 @@ if json_data['make_type'].upper() == 'BIAS'\
         for idx, image in enumerate(images):
 
             # remove bias
-            master_image_all[idx, :, :] = images[idx][0] + pedestal - master_bias
+            #master_image_all[idx, :, :] = images[idx][0] + pedestal - master_bias
+            pass
 
     if json_data['make_type'].upper() == 'FLAT':
 
@@ -141,6 +142,7 @@ if json_data['make_type'].upper() == 'BIAS'\
 
 
         for idx, image in enumerate(images):
+
             #remove bias
             master_image_all[idx, :, :] = master_image_all[idx, :, :] - master_bias
 
@@ -160,11 +162,18 @@ if json_data['make_type'].upper() == 'BIAS'\
                 master_dark_unscaled[:,:] = darks[0][0]
                 master_dark[:,:] = master_dark_unscaled * (image_exptime/dark_exptime)
 
+            # subtract master bias from master dark
+            master_dark = master_dark - master_bias
+
             # subtract dark;
             master_image_all[idx, :, :] = master_image_all[idx, :, :] - master_dark
 
             # normalise
-            master_image_all[idx, :, :] = master_image_all[idx, :, :]  / np.average(master_image_all[idx, :, :])
+            avgallflats =  np.average(master_image_all)
+
+            normfact = np.average(master_image_all[idx, :, :])/np.average(master_image_all)
+
+            master_image_all[idx, :, :] /= normfact
 
 
     # combine frames to create Master frame
@@ -176,9 +185,6 @@ if json_data['make_type'].upper() == 'BIAS'\
     elif json_data['combine_method'] == 'median':
         master_image = np.median(master_image_all, axis=0)
 
-    if json_data['make_type'].upper() == 'FLAT':
-        # rescale to 30k counts
-        master_image = 3e4 * master_image / np.average(master_image)
 
     # create output fits frame
 

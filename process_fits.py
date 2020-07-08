@@ -72,9 +72,6 @@ for idx, image_fname in enumerate(json_data['input_fits']):
 
     try:
 
-        # Add a Pedestal of 300 ADUs
-        image_out += 300
-
         # subtract MasterBias, if present
         if "master_bias" in json_data:
             master_bias = get_ImageData(json_data['master_bias'])[0]
@@ -87,12 +84,18 @@ for idx, image_fname in enumerate(json_data['input_fits']):
             master_dark_exptime = master_dark_data[1]['EXPTIME']
             exptime_light = image[1]['EXPTIME']
             expfactor = exptime_light / master_dark_exptime
-            image_out[:, :] = image_out - master_dark*expfactor
+
+
+            image_out[:, :] = image_out - ((master_dark-master_bias)*expfactor) # subtract bias from master
+
 
         # divide by MasterFlat
         if "master_flat" in json_data:
             master_flat = get_ImageData(json_data['master_flat'])[0]
             image_out[:, :] = image_out / (master_flat / np.average(master_flat))
+
+        # Add a Pedestal of 100 ADUs
+        image_out += 100
 
         # use header of first file and add some comments
         header_out = image[1]
