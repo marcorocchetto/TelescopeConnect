@@ -88,7 +88,7 @@ for idx, image_fname in enumerate(json_data['input_fits']):
 
             image_out[:, :] = image_out - ((master_dark-master_bias)*expfactor) # subtract bias from master
 
-
+        # 
         # divide by MasterFlat
         if "master_flat" in json_data:
             master_flat = get_ImageData(json_data['master_flat'])[0]
@@ -96,6 +96,9 @@ for idx, image_fname in enumerate(json_data['input_fits']):
 
         # Add a Pedestal of 100 ADUs
         image_out += 100
+
+        #fix saturation
+        image_out[image_out > 65535] = 65535
 
         # use header of first file and add some comments
         header_out = image[1]
