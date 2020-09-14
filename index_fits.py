@@ -435,6 +435,11 @@ try:
     if 'frame_guid' in json_data:
         header['FRAMEID'] = json_data['frame_guid']
 
+    observationBlockGuid = None
+    if 'PLAN' in header:
+        if len(header['PLAN'].split('_')) > 1:
+            observationBlockGuid = header['PLAN'].split('_')[1]
+
     # save modified fits
     hdu[0].header = header
 
@@ -476,7 +481,8 @@ try:
         'flat_field_residuals': False,
         'rbi_residuals': False,
         'saturated ': False,
-        'binning': binning
+        'binning': binning,
+        'observationBlockGuid': observationBlockGuid
     }
     sys.stdout = save_stdout
 
