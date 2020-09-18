@@ -482,8 +482,11 @@ try:
         'rbi_residuals': False,
         'saturated ': False,
         'binning': binning,
-        'observationBlockGuid': observationBlockGuid
     }
+    if observationBlockGuid:
+        output['observationBlockGuid'] = observationBlockGuid
+
+
     sys.stdout = save_stdout
 
     print(json.dumps(output, separators=(',',':'), sort_keys=True, indent=4))
