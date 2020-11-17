@@ -103,7 +103,11 @@ for idx, image_fname in enumerate(json_data['input_fits']):
         # use header of first file and add some comments
         header_out = image[1]
         header_out['PROC'] = 'True'
-        header_out['COMMENT'] = 'Processed %s on %s' % (get_Version(), strftime("%Y-%m-%dT%H-%M-%S"))
+
+        if '_ATE' in header_out:
+            del header_out['_ATE']
+        if 'COMMENT' in header_out:
+            del header_out['COMMENT']
 
         hdu = fits.PrimaryHDU(image_out.astype(np.uint16), header=header_out)
         hdu.writeto(path_fits, overwrite=True)

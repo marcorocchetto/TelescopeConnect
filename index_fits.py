@@ -407,8 +407,6 @@ try:
         del header['SWCREATE']
     if 'HISTORY' in header:
         del header['HISTORY']
-    if 'COMMENT' in header:
-        del header['COMMENT']
     if 'PRESSURE' in header:
         del header['PRESSURE']
     if 'SBSTDVER' in header:
@@ -417,6 +415,10 @@ try:
         del header['SWOWNER']
     if 'PLTSOLVD' in header:
         del header['PLTSOLVD']
+    if '_ATE' in header:
+        del header['_ATE']
+    if 'COMMENT' in header:
+        del header['COMMENT']
 
     if 'telescope_model' in json_data:
         header['TELESCOP'] = json_data['telescope_model']
