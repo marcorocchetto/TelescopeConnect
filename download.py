@@ -109,6 +109,34 @@ for image_fname in all_images:
 
     header = hdulist[0].header
 
+    # clean fits headers
+    if 'WXSENSOR' in header:
+        del header['WXSENSOR']
+    if 'SWSERIAL' in header:
+        del header['SWSERIAL']
+    if 'SWCREATE' in header:
+        del header['SWCREATE']
+    if 'HISTORY' in header:
+        del header['HISTORY']
+    if 'PRESSURE' in header:
+        del header['PRESSURE']
+    if 'SBSTDVER' in header:
+        del header['SBSTDVER']
+    if 'SWOWNER' in header:
+        del header['SWOWNER']
+    if 'PLTSOLVD' in header:
+        del header['PLTSOLVD']
+    if '_ATE' in header:
+        del header['_ATE']
+    if 'COMMENT' in header:
+        del header['COMMENT']
+    if 'DATE' in header:
+        del header['DATE']
+
+    # save modified fits
+    hdulist[0].header = header
+    hdulist.writeto(image_fname, overwrite=True)
+
     # determine Image type from header IMAGETYP
     imagetype = get_ImageType(header['IMAGETYP'])
     if imagetype == 'LIGHT':

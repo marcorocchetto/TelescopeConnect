@@ -419,6 +419,8 @@ try:
         del header['_ATE']
     if 'COMMENT' in header:
         del header['COMMENT']
+    if 'DATE' in header:
+        del header['DATE']
 
     if 'telescope_model' in json_data:
         header['TELESCOP'] = json_data['telescope_model']

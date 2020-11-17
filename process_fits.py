@@ -108,6 +108,8 @@ for idx, image_fname in enumerate(json_data['input_fits']):
             del header_out['_ATE']
         if 'COMMENT' in header_out:
             del header_out['COMMENT']
+        if 'DATE' in header_out:
+            del header_out['DATE']
 
         hdu = fits.PrimaryHDU(image_out.astype(np.uint16), header=header_out)
         hdu.writeto(path_fits, overwrite=True)
