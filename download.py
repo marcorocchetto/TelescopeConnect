@@ -132,6 +132,41 @@ for image_fname in all_images:
         del header['COMMENT']
     if 'DATE' in header:
         del header['DATE']
+    if 'AIRMASS' in header:
+        del header['AIRMASS']
+    if 'OBJCTHA' in header:
+        del header['OBJCTHA']
+    if 'HA' in header:
+        del header['HA']
+    if 'OBJCTALT' in header:
+        del header['OBJCTALT']
+    if 'ALTITUDE' in header:
+        del header['ALTITUDE']
+    if 'AZIMUTH' in header:
+        del header['AZIMUTH']
+    if 'OBJCTAZ' in header:
+        del header['OBJCTAZ']
+    if 'ST' in header:
+        del header['ST']
+    if 'PIERSIDE' in header:
+        del header['PIERSIDE']
+    if 'JD' in header:
+        del header['JD']
+    if 'JD-HELIO' in header:
+        del header['JD-HELIO']
+    if 'TIME-OBS' in header:
+        del header['TIME-OBS']
+    if 'UT' in header:
+        del header['UT']
+    if 'JD-OBS' in header:
+        del header['JD-OBS']
+    if 'HJD-OBS' in header:
+        del header['HJD-OBS']
+    if 'BJD-OBS' in header:
+        del header['BJD-OBS']
+    if 'HISTORY' in header:
+        del header['HISTORY']
+
 
     # save modified fits
     hdulist[0].header = header
