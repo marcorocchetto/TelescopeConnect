@@ -444,6 +444,11 @@ try:
         if len(header['PLAN'].split('_')) > 1:
             observationBlockGuid = header['PLAN'].split('_')[1]
 
+    requestId = None
+    if 'REQID' in header:
+        requestId = int(header['REQID'])
+
+
     # save modified fits
     hdu[0].header = header
 
@@ -489,7 +494,8 @@ try:
     }
     if observationBlockGuid:
         output['observationBlockGuid'] = observationBlockGuid
-
+    if requestId:
+        output['request_id'] = requestId
 
     sys.stdout = save_stdout
 
