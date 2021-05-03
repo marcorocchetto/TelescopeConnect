@@ -139,18 +139,18 @@ try:
         else:
             max_allowed_seeing = 99
 
-        plate_solved = True
+        platesolved = True
         wcs_headers = ['CTYPE1','CTYPE2','CRVAL1','CRVAL2','CRPIX1','CRPIX2']
         for wcs_header in wcs_headers:
             if not wcs_header in hdu[0].header:
-                plate_solved = False
+                platesolved = False
 
         seeing = None
 
         if 'FWHM' in hdu[0].header:
             seeing = hdu[0].header['FWHM']
 
-        if not plate_solved:
+        if not platesolved:
 
             workenv = json_data['output_folder']
 
