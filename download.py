@@ -26,8 +26,20 @@ import glob
 import psutil
 
 
-process = psutil.Process(os.getpid())
+imagers_guids = {
+    'E140667F-3D4E-4BAE-89A6-126144928755': {'telescope_name': 'CHI-1'},
+    'C0194AE9-62B4-4F4F-864E-5E2FB7B7923E': {'telescope_name': 'SPA-1'},
+    'EB2AF3C2-DFEB-402F-AB48-785E113C9EF2': {'telescope_name': 'SPA-2'},
+    '3E9D7580-0B43-4316-B913-AB664DEDFAD7': {'telescope_name': 'CHI-2'},
+    '573979CE-AD97-40C2-A2FD-B191E7729A6E': {'telescope_name': 'CHI-3'},
+    '56CA27A6-F828-448E-972A-9C358427A9AD': {'telescope_name': 'CHI-4'},
+    '2F74D31D-3F6B-4B42-9EF3-B58C2777D806': {'telescope_name': 'AUS-2'},
+    '02640313-512F-45B3-9940-ED6310A74AA3': {'telescope_name': 'SPA-3'},
+    'D7BFCFB9-A083-452A-92C9-5B8BC7BDD409': {'telescope_name': 'CHI-5'},
+    '41432DC9-3437-40FA-A449-C1FCC17EE6CD': {'telescope_name': 'CHI-6'}
+}
 
+process = psutil.Process(os.getpid())
 
 from library.general import *
 
@@ -69,10 +81,9 @@ orig_directory = os.path.abspath(os.path.join(json_data['output_folder'], 'orig'
 if not os.path.exists(orig_directory):
     os.makedirs(orig_directory)
 
-# logging to text file, in zip folder
+#logging to text file, in zip folder
 log_filename = os.path.join(zip_directory, 'log.txt')
 sys.stdout = open(log_filename, "w")
-
 
 # stats_filename = os.path.join(zip_directory, 'stats.txt')
 # stats_file = open(stats_filename, 'w')
@@ -80,8 +91,8 @@ sys.stdout = open(log_filename, "w")
 # preprocessing
 #
 #
-
-print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+#
+# print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
 # sort all files
 all_images = []
@@ -98,6 +109,13 @@ all_images_dict = {
     'Processed': [],
     'Raw': []
 }
+
+obj_names = []
+tel_names = []
+inc_light = False
+inc_calib = False
+telescope_name = None
+
 for image_fname in all_images:
 
     # get header
@@ -106,6 +124,13 @@ for image_fname in all_images:
     except:
         print('Error reading ' + image_fname)
         continue
+
+    guid = image_fname.split('/')[4].upper()
+
+    if guid in imagers_guids:
+        telescope_name = imagers_guids[guid]['telescope_name']
+
+    tel_names.append(telescope_name)
 
     header = hdulist[0].header
 
@@ -175,6 +200,11 @@ for image_fname in all_images:
     # determine Image type from header IMAGETYP
     imagetype = get_ImageType(header['IMAGETYP'])
     if imagetype == 'LIGHT':
+
+        inc_light = True
+
+        obj_names.append(header['OBJECT'])
+
         if 'PROC' in header:
             if header['PROC']:
                 all_images_dict['Processed'].append(image_fname)
@@ -185,10 +215,13 @@ for image_fname in all_images:
     elif 'NCOMBINE' in header: # ncombine is only inserted for Master frames
         all_images_dict['Master'].append(image_fname)
     elif imagetype == 'BIAS':
+        inc_calib = True
         all_images_dict['Bias'].append(image_fname)
     elif imagetype == 'DARK':
+        inc_calib = True
         all_images_dict['Dark'].append(image_fname)
     elif imagetype == 'FLAT':
+        inc_calib = True
         all_images_dict['Flat'].append(image_fname)
 
 # if we specify Master or Raw calibs, Raw frames, then we need to deliver them
@@ -203,7 +236,7 @@ for imgtype in ['Flat', 'Dark', 'Bias', 'Master', 'Raw']:
             hdulist = fits.open(image_fname, ignore_missing_end=True)
             header = hdulist[0].header
 
-            filename = get_FileName(header)
+            filename = get_FileName(header, telescope_name=telescope_name)
 
             if imgtype == 'Raw':
                 filename += '_raw'
@@ -220,8 +253,6 @@ for imgtype in ['Flat', 'Dark', 'Bias', 'Master', 'Raw']:
             elif json_data['output_format'] == 'jpg':
                 os.system("/usr/bin/convert '" + image_fname + \
                           "' -contrast-stretch 20% '" + os.path.join(zip_directory, imgtype, output_filename_jpg) + "'")
-
-print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
 
 # no align, no stack. Deliver original Processed files if present
 if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preprocess']:
@@ -251,9 +282,6 @@ if not 'align' in json_data['preprocess'] and not 'stack' in json_data['preproce
             elif json_data['output_format'] == 'jpg':
                 os.system("/usr/bin/convert '" + image_fname + \
                           "' -contrast-stretch 20% '" + os.path.join(zip_directory, imgtype, output_filename_jpg) + "'")
-
-    print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
-
 
 # align
 aligned_success = False
@@ -320,8 +348,6 @@ if 'align' in json_data['preprocess'] or 'stack' in json_data['preprocess']:
 
         aligned_success = True
         print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
-
-
 
 # align and stack (images already aligned in step above)
 if 'stack' in json_data['preprocess']:
@@ -440,16 +466,29 @@ if 'stack' in json_data['preprocess']:
                 shutil.copy(os.path.join(stack_directory, output_filename_fits),
                         os.path.join(zip_directory, 'Stacked', output_filename_fits))
 
-print('****** MEMORY MB %.1f' % (float(process.memory_info().rss) / 1024 / 1024))
+obj_names = list(set(obj_names))
+tel_names = list(set(tel_names))
 
-sys.stdout = sys.__stdout__
+if inc_light and len(obj_names) == 1 and len(obj_names) == 1:
+    output_filename_zip = 'TelescopeLive_' + obj_names[0] + '_' + tel_names[0] + '.zip'
+    output_filename = 'TelescopeLive_' + obj_names[0] + '_' + tel_names[0]
 
-timenow = datetime.datetime.today().strftime('%Y-%m-%dT%H-%M-%S')
+elif inc_calib and len(obj_names) == 1:
+    output_filename_zip = 'TelescopeLive_Calibration_' + tel_names[0] + '.zip'
+    output_filename = 'TelescopeLive_Calibration_' + tel_names[0]
 
-output_filename_zip = 'TelescopeLive_' + timenow  + '.zip'
-output_filename = 'TelescopeLive_' + timenow
+elif inc_light and inc_calib and len(obj_names) == 1 and len(obj_names) == 1:
+    output_filename_zip = 'TelescopeLive_' + obj_names[0] + '+Calibration_' + tel_names[0] + '.zip'
+    output_filename = 'TelescopeLive_' + obj_names[0] + '+Calibration_' + tel_names[0]
 
-shutil.make_archive(os.path.join(json_data['output_folder'], output_filename), 'zip', zip_directory)
+else:
+    timenow = datetime.datetime.today().strftime('%Y-%m-%dT%H-%M-%S')
+    output_filename_zip = 'TelescopeLive_Multiple_Objects.zip'
+
+shutil.make_archive(os.path.join(json_data['output_folder'], output_filename),
+                    'zip',
+                    zip_directory,
+                    output_filename)
 shutil.rmtree(zip_directory)
 
 print(json.dumps({'result': 'SUCCESS',
