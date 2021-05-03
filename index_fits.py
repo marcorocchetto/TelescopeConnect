@@ -161,7 +161,7 @@ try:
             seeing = hdu[0].header['FWHM']
 
         if not platesolved:
-            
+
             scalelow = PixelScale * 0.9
             scalehigh = PixelScale * 1.1
 
@@ -190,9 +190,6 @@ try:
                 platesolved = True
 
         if not seeing and platesolved:
-
-            print('Start here')
-
 
             filename_new = os.path.join(workenv, os.path.splitext(os.path.basename(os.path.abspath(json_data['fits_fname'])))[0] + '.new')
             filename_final = os.path.abspath(json_data['fits_fname'])
