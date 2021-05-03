@@ -19,10 +19,11 @@ def RaiseError(error_description):
     print(json.dumps({'result': 'ERROR', 'error_description': error_description}, separators=(',',':'), indent=4))
     sys.exit()
 
-def get_FileName(header):
+def get_FileName(header, telescope_name=None):
 
     dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
     filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
+
     ccdtemp = round(header['CCD-TEMP'])
     exptime = header['EXPTIME']
 
@@ -31,8 +32,13 @@ def get_FileName(header):
     else:
         exptime_str = str(round(exptime))
 
+
+    if telescope:
+        filename += '_' + telescope_name
+
     imagetype = get_ImageType(header['IMAGETYP'])
     if imagetype == 'LIGHT':
+
         if 'OBJECT' in header:
             object = header['OBJECT']
             object = object.replace('\'', '-')

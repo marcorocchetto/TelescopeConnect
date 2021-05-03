@@ -81,9 +81,9 @@ orig_directory = os.path.abspath(os.path.join(json_data['output_folder'], 'orig'
 if not os.path.exists(orig_directory):
     os.makedirs(orig_directory)
 
-#logging to text file, in zip folder
-log_filename = os.path.join(zip_directory, 'log.txt')
-sys.stdout = open(log_filename, "w")
+#add an empty file so that zip file will inflate with right folder
+filename = os.path.join(zip_directory, 'log.txt')
+open(filename, 'w')
 
 # stats_filename = os.path.join(zip_directory, 'stats.txt')
 # stats_file = open(stats_filename, 'w')
@@ -487,8 +487,7 @@ else:
 
 shutil.make_archive(os.path.join(json_data['output_folder'], output_filename),
                     'zip',
-                    zip_directory,
-                    output_filename)
+                    zip_directory)
 shutil.rmtree(zip_directory)
 
 print(json.dumps({'result': 'SUCCESS',
