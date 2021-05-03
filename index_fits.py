@@ -147,6 +147,14 @@ try:
 
         seeing = None
 
+        hdu = fits.open(os.path.abspath(json_data['fits_fname']))
+        xaxis = hdu[0].header['NAXIS1']
+        yaxis = hdu[0].header['NAXIS2']
+        binning = hdu[0].header['XBINNING']
+
+        ra = hdu[0].header['OBJCTRA'].replace(' ', ':')
+        dec = hdu[0].header['OBJCTDEC'].replace(' ', ':')
+
         if 'FWHM' in hdu[0].header:
             seeing = hdu[0].header['FWHM']
 
@@ -159,14 +167,6 @@ try:
             margin = 200
             scalelow = PixelScale * 0.9
             scalehigh = PixelScale * 1.1
-
-            hdu = fits.open(os.path.abspath(json_data['fits_fname']))
-            xaxis = hdu[0].header['NAXIS1']
-            yaxis = hdu[0].header['NAXIS2']
-            binning = hdu[0].header['XBINNING']
-
-            ra = hdu[0].header['OBJCTRA'].replace(' ', ':')
-            dec = hdu[0].header['OBJCTDEC'].replace(' ', ':')
 
             radius = 5*round(np.sqrt(2) * xaxis * PixelScale / 2 / 60)  # radius of search in arcmin (5 field diagonals)
 
