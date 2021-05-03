@@ -151,9 +151,9 @@ try:
         xaxis = hdu[0].header['NAXIS1']
         yaxis = hdu[0].header['NAXIS2']
         binning = hdu[0].header['XBINNING']
-
         ra = hdu[0].header['OBJCTRA'].replace(' ', ':')
         dec = hdu[0].header['OBJCTDEC'].replace(' ', ':')
+        PixelScale = json_data['pixel_scale']
 
         if 'FWHM' in hdu[0].header:
             seeing = hdu[0].header['FWHM']
@@ -162,7 +162,6 @@ try:
 
             workenv = json_data['output_folder']
 
-            PixelScale = json_data['pixel_scale']
 
             margin = 200
             scalelow = PixelScale * 0.9
