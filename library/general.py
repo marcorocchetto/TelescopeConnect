@@ -24,7 +24,13 @@ def get_FileName(header):
     dateobs_utc_str, dateobs_utc_datetime = get_DateObs(header['DATE-OBS'])
     filename = dateobs_utc_datetime.strftime('%Y-%m-%dT%H-%M-%S')
     ccdtemp = round(header['CCD-TEMP'])
-    exptime = round(header['EXPTIME'])
+    exptime = header['EXPTIME']
+
+    if exptime < 1:
+        exptime_str = '%.2f'% float(exptime)
+    else:
+        exptime_str = str(round(exptime))
+
     imagetype = get_ImageType(header['IMAGETYP'])
     if imagetype == 'LIGHT':
         if 'OBJECT' in header:
@@ -40,7 +46,7 @@ def get_FileName(header):
         filename += '_T'
         filename += str(int(ccdtemp))
         filename += '_'
-        filename += str(exptime)
+        filename += exptime_str
         filename += 's'
     elif imagetype == 'BIAS' and not 'NCOMBINE' in header:
         filename += '_Bias'
@@ -51,14 +57,14 @@ def get_FileName(header):
         filename += '_T'
         filename += str(ccdtemp)
         filename += '_'
-        filename += str(exptime)
+        filename += exptime_str
         filename += 's'
     elif imagetype == 'DARK' and 'NCOMBINE' in header:
         filename += '_MasterDark'
         filename += '_T'
         filename += str(ccdtemp)
         filename += '_'
-        filename += str(exptime)
+        filename += exptime_str
         filename += 's'
     elif imagetype == 'FLAT' and not 'NCOMBINE' in header:
         filename += '_Flat_'
@@ -66,7 +72,7 @@ def get_FileName(header):
         filename += '_T'
         filename += str(ccdtemp)
         filename += '_'
-        filename += str(exptime)
+        filename += exptime_str
         filename += 's'
     elif imagetype == 'FLAT' and 'NCOMBINE' in header:
         filename += '_MasterFlat_'
@@ -74,7 +80,7 @@ def get_FileName(header):
         filename += '_T'
         filename += str(ccdtemp)
         filename += '_'
-        filename += str(exptime)
+        filename += exptime_str
         filename += 's'
     filename = filename.replace(' ', '_')
 

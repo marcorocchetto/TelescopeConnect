@@ -110,10 +110,6 @@ try:
     except Exception as e:
         return_error(str(e) + "Traceback: " + traceback.format_exc())
 
-    # temporary fix for PinPoint simulated images
-    if not 'IMAGETYP' in hdu[0].header:
-        header['IMAGETYP'] = 'Light'
-
     # check that some required FITS headers are present, otherwise raise error
     #header_keys = ['DATE-OBS', 'IMAGETYP', 'CCD-TEMP', 'EXPTIME']
     header_keys = ['DATE-OBS', 'CCD-TEMP', 'EXPTIME', 'XBINNING', 'YBINNING']
@@ -143,25 +139,35 @@ try:
         else:
             max_allowed_seeing = 99
 
-        # get seeing
-        seeing = 0
-        if not 'pixel_scale' in json_data:
-            seeing = 0
-        else:
+        plate_solved = True
+        wcs_headers = ['CTYPE1','CTYPE2','CRVAL1','CRVAL2','CRPIX1','CRPIX2']
+        for wcs_header in wcs_headers:
+            if not wcs_header in hdu[0].header:
+                plate_solved = False
 
-            PixelScale = json_data['pixel_scale']
+        seeing = None
+
+        if 'FWHM' in hdu[0].header:
+            seeing = hdu[0].header['FWHM']
+
+        if not plate_solved:
 
             workenv = json_data['output_folder']
+
+            PixelScale = json_data['pixel_scale']
 
             margin = 200
             scalelow = PixelScale * 0.9
             scalehigh = PixelScale * 1.1
+
             hdu = fits.open(os.path.abspath(json_data['fits_fname']))
             xaxis = hdu[0].header['NAXIS1']
             yaxis = hdu[0].header['NAXIS2']
             binning = hdu[0].header['XBINNING']
+
             ra = hdu[0].header['OBJCTRA'].replace(' ', ':')
             dec = hdu[0].header['OBJCTDEC'].replace(' ', ':')
+
             radius = 5*round(np.sqrt(2) * xaxis * PixelScale / 2 / 60)  # radius of search in arcmin (5 field diagonals)
 
             args = '--verbose --use-sextractor --tweak-order 2 ' \
@@ -180,73 +186,74 @@ try:
             # check if test.solved exists
             if not os.path.isfile(os.path.join(workenv, os.path.splitext(os.path.basename(os.path.abspath(json_data['fits_fname'])))[0] + '.solved')):
 
-                seeing = 0
                 platesolved = False
 
             else:
 
                 platesolved = True
 
-                filename_new = os.path.join(workenv, os.path.splitext(os.path.basename(os.path.abspath(json_data['fits_fname'])))[0] + '.new')
-                filename_final = os.path.abspath(json_data['fits_fname'])
 
-                shutil.move(filename_new, filename_final)
+                if not seeing:
+                    filename_new = os.path.join(workenv, os.path.splitext(os.path.basename(os.path.abspath(json_data['fits_fname'])))[0] + '.new')
+                    filename_final = os.path.abspath(json_data['fits_fname'])
 
-                hdu = fits.open(filename_final)
-                image = hdu[0].data
-                header = hdu[0].header
+                    shutil.move(filename_new, filename_final)
 
-                try:
+                    hdu = fits.open(filename_final)
+                    image = hdu[0].data
+                    header = hdu[0].header
 
-                    sew = sewpy.SEW(params=["FWHM_IMAGE", "X_WORLD", "Y_WORLD", "X_IMAGE", "Y_IMAGE", "BACKGROUND", "FLUX_ISOCOR"],
-                                    config={"DETECT_MINAREA": 50, "DETECTION_TRESH": 2})
-                    sewout = sew(filename_final)
+                    try:
 
-                    sort = sewout['table'].argsort(['FLUX_ISOCOR'])[::-1]
-                    sorted_table = sewout['table'][:][sort]
-                    fieldstars_world = []
-                    fieldstars_image = []
-                    fieldstars_seeing = []
-                    fieldstars_background = []
+                        sew = sewpy.SEW(params=["FWHM_IMAGE", "X_WORLD", "Y_WORLD", "X_IMAGE", "Y_IMAGE", "BACKGROUND", "FLUX_ISOCOR"],
+                                        config={"DETECT_MINAREA": 50, "DETECTION_TRESH": 2})
+                        sewout = sew(filename_final)
 
-                    # remove stars with bad background
-                    bgrm_table = sorted_table[sorted_table['BACKGROUND'] < np.median(image)]
+                        sort = sewout['table'].argsort(['FLUX_ISOCOR'])[::-1]
+                        sorted_table = sewout['table'][:][sort]
+                        fieldstars_world = []
+                        fieldstars_image = []
+                        fieldstars_seeing = []
+                        fieldstars_background = []
 
-                    # remove edge stars
-                    for fieldstar in bgrm_table[:150]: # take top 150
-                        if fieldstar["X_IMAGE"] > margin and fieldstar["X_IMAGE"] < (xaxis - margin) and \
-                                fieldstar["Y_IMAGE"] > margin and fieldstar["Y_IMAGE"] < (yaxis - margin):
-                            fieldstars_world.append((fieldstar["X_WORLD"], fieldstar["Y_WORLD"]))
-                            fieldstars_image.append((fieldstar["X_IMAGE"], fieldstar["Y_IMAGE"]))
-                            fieldstars_seeing.append(fieldstar["FWHM_IMAGE"])
-                            fieldstars_background.append(fieldstar["BACKGROUND"])
+                        # remove stars with bad background
+                        bgrm_table = sorted_table[sorted_table['BACKGROUND'] < np.median(image)]
 
-                    ra = hdu[0].header['CRVAL1']
-                    dec = hdu[0].header['CRVAL2']
-                    c = SkyCoord(ra, dec, unit="deg")
+                        # remove edge stars
+                        for fieldstar in bgrm_table[:150]: # take top 150
+                            if fieldstar["X_IMAGE"] > margin and fieldstar["X_IMAGE"] < (xaxis - margin) and \
+                                    fieldstar["Y_IMAGE"] > margin and fieldstar["Y_IMAGE"] < (yaxis - margin):
+                                fieldstars_world.append((fieldstar["X_WORLD"], fieldstar["Y_WORLD"]))
+                                fieldstars_image.append((fieldstar["X_IMAGE"], fieldstar["Y_IMAGE"]))
+                                fieldstars_seeing.append(fieldstar["FWHM_IMAGE"])
+                                fieldstars_background.append(fieldstar["BACKGROUND"])
 
-                    fn_fieldstars = os.path.join(workenv, os.path.splitext(os.path.basename(filename_new))[0] + '.fieldstars')
-                    f = open(fn_fieldstars, "w+")
-                    f.write('ra, dec,idx \n')
-                    for idx, result in enumerate(fieldstars_world):
-                        f.write(str(result[0]) + ', ' + str(result[1]) + ',' + str(idx) + '\n')
-                    f.close()
+                        ra = hdu[0].header['CRVAL1']
+                        dec = hdu[0].header['CRVAL2']
+                        c = SkyCoord(ra, dec, unit="deg")
 
-                    table = XMatch.query(cat1=open(fn_fieldstars),
-                                         cat2='vizier:II/246/out',
-                                         max_distance=5 * u.arcsec,
-                                         colRA1='ra',
-                                         colDec1='dec')
+                        fn_fieldstars = os.path.join(workenv, os.path.splitext(os.path.basename(filename_new))[0] + '.fieldstars')
+                        f = open(fn_fieldstars, "w+")
+                        f.write('ra, dec,idx \n')
+                        for idx, result in enumerate(fieldstars_world):
+                            f.write(str(result[0]) + ', ' + str(result[1]) + ',' + str(idx) + '\n')
+                        f.close()
 
-                    seeing_values = []
-                    for idx in table['idx']:
-                        seeing_values.append(fieldstars_seeing[idx])
-                    seeing = np.median(seeing_values) * PixelScale * int(binning)
+                        table = XMatch.query(cat1=open(fn_fieldstars),
+                                             cat2='vizier:II/246/out',
+                                             max_distance=5 * u.arcsec,
+                                             colRA1='ra',
+                                             colDec1='dec')
+
+                        seeing_values = []
+                        for idx in table['idx']:
+                            seeing_values.append(fieldstars_seeing[idx])
+                        seeing = np.median(seeing_values) * PixelScale * int(binning)
 
 
-                except Exception as e:
+                    except Exception as e:
 
-                    seeing = 0
+                        seeing = 0
 
         if not seeing or math.isnan(seeing):
             seeing = 0
@@ -259,8 +266,6 @@ try:
                 qa_seeing = True
         else:
             qa_seeing = False
-
-
 
         # check pointing
         if platesolved:
@@ -422,13 +427,22 @@ try:
     if 'DATE' in header:
         del header['DATE']
 
-    if 'telescope_model' in json_data:
-        header['TELESCOP'] = json_data['telescope_model']
+    if 'FOCALLEN' in header:
+        del header['FOCALLEN']
+    if 'APTDIA' in header:
+        del header['APTDIA']
+    if 'APTAREA' in header:
+        del header['APTAREA']
+    if 'FLIPSTAT' in header:
+        del header['FLIPSTAT']
+
+    if 'telescope_name' in json_data:
+        header['TELESCOP'] = json_data['telescope_name']
 
     if 'imager_name' in json_data:
         header['INSTRUME'] = json_data['imager_name']
 
-    header['OBSERVER'] = 'TelescopeLive'
+    header['OBSERVER'] = 'Telescope Live'
 
     if 'telescope_guid' in json_data:
         header['TELID'] = json_data['telescope_guid']
