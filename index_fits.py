@@ -157,8 +157,8 @@ try:
         workenv = json_data['output_folder']
         margin = 200
 
-        if 'FWHM' in hdu[0].header:
-            seeing = hdu[0].header['FWHM']
+        # if 'FWHM' in hdu[0].header:
+        #     seeing = hdu[0].header['FWHM']
 
         if not platesolved:
 
