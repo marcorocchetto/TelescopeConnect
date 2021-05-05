@@ -33,7 +33,7 @@ def get_FileName(header, telescope_name=None):
         exptime_str = str(round(exptime))
 
 
-    if telescope:
+    if telescope_name:
         filename += '_' + telescope_name
 
     imagetype = get_ImageType(header['IMAGETYP'])
