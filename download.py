@@ -484,6 +484,7 @@ elif inc_light and inc_calib and len(obj_names) == 1 and len(tel_names) == 1:
 else:
     timenow = datetime.datetime.today().strftime('%Y-%m-%dT%H-%M-%S')
     output_filename_zip = 'TelescopeLive_Multiple_Objects.zip'
+    output_filename = 'TelescopeLive_Multiple_Objects'
 
 shutil.make_archive(os.path.join(json_data['output_folder'], output_filename),
                     'zip',
