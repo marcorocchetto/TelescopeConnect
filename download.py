@@ -469,6 +469,13 @@ if 'stack' in json_data['preprocess']:
 obj_names = list(set(obj_names))
 tel_names = list(set(tel_names))
 
+if len(obj_names) == 1:
+    if not obj_names[0]:
+        obj_names[0] = []
+if len(tel_names) == 1:
+    if not tel_names[0]:
+        tel_names[0] = []
+
 if inc_light and len(obj_names) == 1 and len(tel_names) == 1:
     output_filename_zip = 'TelescopeLive_' + obj_names[0] + '_' + tel_names[0] + '.zip'
     output_filename = 'TelescopeLive_' + obj_names[0] + '_' + tel_names[0]
