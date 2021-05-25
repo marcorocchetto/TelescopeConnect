@@ -38,6 +38,26 @@ from astropy import units
 from astroquery.xmatch import XMatch
 import math
 
+import threading
+
+class RunCmd(threading.Thread):
+
+    def __init__(self, cmd, timeout):
+        threading.Thread.__init__(self)
+        self.cmd = cmd
+        self.timeout = timeout
+
+    def run(self):
+        self.p = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        return self.p
+
+    def Run(self):
+        self.start()
+        self.join(self.timeout)
+        if self.is_alive():
+            self.p.kill()      #use self.p.kill() if process needs a kill -9
+            self.join()
+
 #loading parameter file parser
 parser = argparse.ArgumentParser()
 parser.add_argument('--json',
@@ -175,8 +195,10 @@ try:
 
             with open(os.devnull, 'wb') as devnull:
                 try:
-                    output = subprocess.check_output(solvefield + ' ' + args,
-                                                     stderr=subprocess.STDOUT, shell=True)
+
+                    output = RunCmd(solvefield + ' ' + args, 10)
+
+
                 except subprocess.CalledProcessError as e:
                     return_error(e.output)
 
