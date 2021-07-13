@@ -64,7 +64,7 @@ if not 'preprocess' in json_data or not json_data['preprocess']:
 if not 'stack_type' in json_data or not json_data['stack_type']:
     json_data['stack_type'] = []
 
-random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(4))
 
 # create directory for files to be compressed
 zip_directory = os.path.abspath(os.path.join(json_data['output_folder'], random_string))
@@ -476,22 +476,24 @@ if len(tel_names) == 1:
     if not tel_names[0]:
         tel_names = []
 
+
+
 if inc_light and len(obj_names) == 1 and len(tel_names) == 1:
-    output_filename_zip = 'TelescopeLive_' + obj_names[0] + '_' + tel_names[0] + '.zip'
-    output_filename = 'TelescopeLive_' + obj_names[0] + '_' + tel_names[0]
+    output_filename_zip = 'TelescopeLive_' + obj_names[0] + '_' + tel_names[0] + '_' + random_string + '.zip'
+    output_filename = 'TelescopeLive_' + obj_names[0] + '_' + tel_names[0] + '_' + random_string
 
 elif inc_calib and len(obj_names) == 1:
-    output_filename_zip = 'TelescopeLive_Calibration_' + tel_names[0] + '.zip'
-    output_filename = 'TelescopeLive_Calibration_' + tel_names[0]
+    output_filename_zip = 'TelescopeLive_Calibration_' + tel_names[0] + '_' + random_string + '.zip'
+    output_filename = 'TelescopeLive_Calibration_' + tel_names[0] + '_' + random_string
 
 elif inc_light and inc_calib and len(obj_names) == 1 and len(tel_names) == 1:
-    output_filename_zip = 'TelescopeLive_' + obj_names[0] + '+Calibration_' + tel_names[0] + '.zip'
-    output_filename = 'TelescopeLive_' + obj_names[0] + '+Calibration_' + tel_names[0]
+    output_filename_zip = 'TelescopeLive_' + obj_names[0] + '+Calibration_' + tel_names[0] + '_' + random_string + '.zip'
+    output_filename = 'TelescopeLive_' + obj_names[0] + '+Calibration_' + tel_names[0] + '_' + random_string
 
 else:
     timenow = datetime.datetime.today().strftime('%Y-%m-%dT%H-%M-%S')
-    output_filename_zip = 'TelescopeLive_Multiple_Objects.zip'
-    output_filename = 'TelescopeLive_Multiple_Objects'
+    output_filename_zip = 'TelescopeLive_Multiple_Objects_' + random_string + '.zip'
+    output_filename = 'TelescopeLive_Multiple_Objects' + random_string
 
 shutil.make_archive(os.path.join(json_data['output_folder'], output_filename),
                     'zip',
