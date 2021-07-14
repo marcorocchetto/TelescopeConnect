@@ -48,10 +48,10 @@ class RunCmd(threading.Thread):
         self.timeout = timeout
 
     def run(self):
-        self.p = subprocess.Popen(self.cmd, stderr=subprocess.PIPE, shell=True)
-        self.p.wait()
-        out, err = self.p.communicate()
-        return out
+        with open(os.devnull, 'w') as fp:
+
+            self.p = subprocess.Popen(self.cmd, stderr=subprocess.STDOUT, stdout=fp, shell=True)
+            self.p.wait()
 
     def Run(self):
         self.start()
@@ -198,7 +198,7 @@ try:
             with open(os.devnull, 'wb') as devnull:
                 try:
 
-                    output = RunCmd(solvefield + ' ' + args, 15).Run()
+                    output = RunCmd(solvefield + ' ' + args, 60).Run()
 
                 except subprocess.CalledProcessError as e:
                     return_error(e.output)
